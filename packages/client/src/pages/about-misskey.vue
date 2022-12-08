@@ -15,17 +15,23 @@
 					{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/misskey.html" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
 				</div>
 				<div class="_formBlock" style="text-align: center;">
-					<MkButton primary rounded inline @click="iLoveCherryPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveCherryPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly ❤]"/> #あおぞらすきー</MkButton>
 				</div>
-				<FormSection v-if="isKokonect">
-					<template #label>_KOKONECT_</template>
-					<div class="_formLinks">
-						<FormLink to="https://status.kokonect.link" external>
-							<template #icon><i class="fas fa-tachometer-alt"></i></template>
-							{{ i18n.ts._aboutMisskey._kokonect.serverStatus }}
-							<template #suffix>GitHub</template>
-						</FormLink>
-					</div>
+				<FormSection>
+					<template #label>あおぞらすきー</template>
+						<div class="_formLinks">
+							<FormLink to="https://aozora.uk" external>
+								<template #icon><i class="fas fa-globe"></i></template>
+								aozora.uk
+								<template #suffix>aozora.uk</template>
+							</FormLink>
+							<FormLink to="https://github.com/rca-fedi/cherrypick" external>
+								<template #icon><i class="fas fa-code"></i></template>
+								{{ i18n.ts._aboutMisskey.source }}
+								<template #suffix>GitHub</template>
+							</FormLink>
+						</div>
 				</FormSection>
 				<FormSection>
 					<template #label>CherryPick</template>
@@ -234,6 +240,12 @@ function gravity() {
 function iLoveCherryPick() {
 	os.post({
 		initialText: 'I $[jelly ❤] #CherryPick',
+		instant: true,
+	});
+}
+function iLoveAozoraUk() {
+	os.post({
+		initialText: 'I $[jelly ❤] #あおぞらすきー',
 		instant: true,
 	});
 }
