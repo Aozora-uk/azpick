@@ -4,7 +4,7 @@
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kokonect-link/cherrypick.git"
+		"url": "https://github.com/rca-fedi/cherrypick.git"
 	},
 	"private": true,
 	"scripts": {

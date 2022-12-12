@@ -16,7 +16,7 @@
 			</main>
 			<div v-if="!root" class="powered-by">
 				<b><MkA to="/">{{ host }}</MkA></b>
-				<small>Powered by <a href="https://github.com/kokonect-link/cherrypick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
+				<small>Powered by <a href="https://rca-fedi/kokonect-link/cherrypick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
 			</div>
 		</div>
 	</div>
