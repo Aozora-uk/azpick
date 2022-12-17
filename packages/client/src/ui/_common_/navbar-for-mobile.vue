@@ -3,9 +3,21 @@
 	<div class="body">
 		<div class="top">
 			<div class="banner" :style="{ backgroundImage: `url(${ $instance.bannerUrl })` }"></div>
-			<button v-click-anime class="item _button instance" @click="openInstanceMenu">
+			<div class="instance_info">
 				<img :src="$instance.iconUrl || $instance.faviconUrl || '/favicon.ico'" alt="" class="icon"/>
+				<button v-click-anime class="item _button instance" @click="openInstanceMenu">
 			</button>
+					<img :src="$instance.iconUrl || $instance.faviconUrl || '/favicon.ico'" alt="" class="icon"/>
+				</button>
+				<div class="instance_info_text">
+					<div class="instance_name">
+						{{ $instance.name || host }}
+					</div>
+					<I18n v-if="onlineUsersCount" :src="i18n.ts.onlineUsersCount" text-tag="span" class="text">
+						<template #n><b>{{ onlineUsersCount }}</b></template>
+					</I18n>
+				</div>
+			</div>
 		</div>
 		<div class="middle">
 			<MkA v-click-anime class="item index" active-class="active" to="/" exact>
