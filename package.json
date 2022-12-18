@@ -1,6 +1,6 @@
 {
 	"name": "cherrypick",
-	"version": "12.119.0-cp-3.0.0_rcamod-v2.2",
+	"version": "12.119.0-cp-3.0.0_rcaetn-v1.2.2",
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
@@ -9,7 +9,7 @@
 	"private": true,
 	"scripts": {
 		"postinstall": "node ./scripts/install-packages.js",
-		"build": "node ./scripts/build.js",
+		"build": "node ./scripts/buaild.js",
 		"start": "cd packages/backend && node --experimental-json-modules ./built/index.js",
 		"start:test": "cd packages/backend && cross-env NODE_ENV=test node --experimental-json-modules ./built/index.js",
 		"init": "npm run migrate",
