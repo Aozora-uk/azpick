@@ -550,16 +550,6 @@ relays: "リレー"
 addRelay: "リレーの追加"
 inboxUrl: "inboxのURL"
 addedRelays: "追加済みのリレー"
-paint: 'ペイント'
-usePressure: '筆圧感知'
-usePressureDescription: '筆圧感知を有効化すると、筆圧の検出に対応している、例えば Apple Pencil のようなデバイスを使用することで、筆圧に従ってペンの太さが変化するようになります。'
-penWidth: 'ペンの太さ'
-eraserWidth: '消しゴムの太さ'
-leaveConfirm: "未保存の変更があります、移動しますか？"
-failedToLoadImage: "画像データの読み込みに失敗しました。"
-theFileIsNotImage: "画像ファイルを指定してください"
-initConfirm: "未保存の変更があります。破棄して続けますか？"
-specifyFileName: "ファイル名を指定してください"
 serviceworkerInfo: "プッシュ通知を行うには有効にする必要があります。"
 deletedNote: "削除された投稿"
 invisibleNote: "非公開の投稿"
@@ -1135,31 +1125,6 @@ _instanceMute:
   instanceMuteDescription2: "改行で区切って設定します"
   title: "設定したインスタンスのノートを隠します。"
   heading: "ミュートするインスタンス"
-
-
-_paint:
-  new: '新規ファイル'
-  open: 'ファイルを開く'
-  save: '保存'
-  undo: '元に戻す'
-  redo: 'やり直す'
-  changeColor: '色を変更'
-  zoomMinus: '- ズーム'
-  zoomPlus: '+ ズーム'
-  width: "幅"
-  height: "高さ"
-  canvasColor: "キャンバスの色"
-  tools:
-  hand: '手'
-    pen: 'ペン'
-    eraser: '消しゴム'
-    shapes: '図形'
-    line: '直線'
-    rect: '四角'
-    rectFill: '四角塗りつぶし'
-    circle: '円'
-    circleFill: '円塗りつぶし'
-    pixel: "ドットペン"
 
 _theme:
   explore: "テーマを探す"
