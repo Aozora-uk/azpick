@@ -16,7 +16,7 @@
 				</div>
 				<div class="_formBlock" style="text-align: center;">
 					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveCherryPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly ❤]"/> #あおぞらすきー</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly :ablobcatheart:]"/> #あおぞらすきー</MkButton>
 				</div>
 				<FormSection>
 					<template #label>あおぞらすきー</template>
@@ -25,6 +25,11 @@
 								<template #icon><i class="fas fa-globe"></i></template>
 								aozora.uk
 								<template #suffix>aozora.uk</template>
+							</FormLink>
+							<FormLink to="https://aozora-uk.github.io/statuspage" external>
+								<template #icon><i class="fas fa-tachometer-alt"></i></template>
+								Status Page
+								<template #suffix>github.io</template>
 							</FormLink>
 							<FormLink to="https://github.com/rca-fedi/cherrypick" external>
 								<template #icon><i class="fas fa-code"></i></template>
@@ -245,7 +250,7 @@ function iLoveCherryPick() {
 }
 function iLoveAozoraUk() {
 	os.post({
-		initialText: 'I $[jelly ❤] #あおぞらすきー',
+		initialText: 'I $[jelly :ablobcatheart:] #あおぞらすきー',
 		instant: true,
 	});
 }
