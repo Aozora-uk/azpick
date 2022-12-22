@@ -70,22 +70,37 @@ function top(): void {
 
 async function chooseList(ev: MouseEvent): Promise<void> {
 	const lists = await os.api('users/lists/list');
-	const items = lists.map(list => ({
+	let items = lists.map((list) => ({
 		type: 'link' as const,
 		text: list.name,
+		icon: '',
 		to: `/timeline/list/${list.id}`,
 	}));
+	items.concat({
+		type: 'link' as const,
+		text: i18n.ts.manageLists,
+		icon: 'ph-faders-horizontal-bold ph-lg',
+		to: '/my/antennas',
+	});
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
 async function chooseAntenna(ev: MouseEvent): Promise<void> {
 	const antennas = await os.api('antennas/list');
-	const items = antennas.map(antenna => ({
+	let items = antennas.map((antenna) => ({
 		type: 'link' as const,
 		text: antenna.name,
+		icon: '',
 		indicate: antenna.hasUnreadNote,
 		to: `/timeline/antenna/${antenna.id}`,
 	}));
+	items.concat({
+		type: 'link' as const,
+		indicate: false,
+		text: i18n.ts.manageLists,
+		icon: 'ph-faders-horizontal-bold ph-lg',
+		to: '/my/antennas',
+	});
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
