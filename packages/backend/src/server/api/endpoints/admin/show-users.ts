@@ -23,7 +23,7 @@ export const paramDef = {
 	properties: {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		offset: { type: 'integer', default: 0 },
-		sort: { type: 'string', enum: ['+follower', '-follower', '+createdAt', '-createdAt', '+updatedAt', '-updatedAt'] },
+		sort: { type: 'string', enum: ['+follower', '-follower', '+createdAt', '-createdAt', '+updatedAt', '-updatedAt', '+lastActiveDate', '-lastActiveDate'] },
 		state: { type: 'string', enum: ['all', 'alive', 'available', 'admin', 'moderator', 'adminOrModerator', 'silenced', 'suspended'], default: 'all' },
 		origin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'combined' },
 		username: { type: 'string', nullable: true, default: null },
@@ -64,6 +64,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		query.andWhere('user.host = :hostname', { hostname: ps.hostname.toLowerCase() });
 	}
 
+<<<<<<< HEAD
 	switch (ps.sort) {
 		case '+follower': query.orderBy('user.followersCount', 'DESC'); break;
 		case '-follower': query.orderBy('user.followersCount', 'ASC'); break;
@@ -73,6 +74,19 @@ export default define(meta, paramDef, async (ps, me) => {
 		case '-updatedAt': query.orderBy('user.updatedAt', 'ASC', 'NULLS FIRST'); break;
 		default: query.orderBy('user.id', 'ASC'); break;
 	}
+=======
+			switch (ps.sort) {
+				case '+follower': query.orderBy('user.followersCount', 'DESC'); break;
+				case '-follower': query.orderBy('user.followersCount', 'ASC'); break;
+				case '+createdAt': query.orderBy('user.createdAt', 'DESC'); break;
+				case '-createdAt': query.orderBy('user.createdAt', 'ASC'); break;
+				case '+updatedAt': query.orderBy('user.updatedAt', 'DESC', 'NULLS LAST'); break;
+				case '-updatedAt': query.orderBy('user.updatedAt', 'ASC', 'NULLS FIRST'); break;
+				case '+lastActiveDate': query.orderBy('user.lastActiveDate', 'DESC', 'NULLS LAST'); break;
+				case '-lastActiveDate': query.orderBy('user.lastActiveDate', 'ASC', 'NULLS FIRST'); break;
+				default: query.orderBy('user.id', 'ASC'); break;
+			}
+>>>>>>> dd4c411d2 (ダッシュボードにモデレーター一覧を表示)
 
 	query.take(ps.limit);
 	query.skip(ps.offset);
