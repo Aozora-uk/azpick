@@ -1,10 +1,6 @@
 {
 	"name": "cherrypick",
-<<<<<<< HEAD
-	"version": "12.119.2-cp-3.0.0_rcaetn-v1.8",
-=======
-	"version": "12.119.0-cp-3.0.0_rcaetn-v1.7",
->>>>>>> parent of 58d60e6f4 (Merge branch 'develop')
+	"version": "12.119.2-cp-3.0.0_rcaetn-v1.7",
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
