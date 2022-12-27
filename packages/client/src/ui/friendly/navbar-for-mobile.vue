@@ -3,9 +3,19 @@
 	<div class="body">
 		<div class="top">
 			<div class="banner" :style="{ backgroundImage: `url(${ $instance.bannerUrl })` }"></div>
-			<button v-click-anime class="item _button instance" @click="openInstanceMenu">
-				<img :src="$instance.iconUrl || $instance.faviconUrl || '/favicon.ico'" alt="" class="icon"/>
-			</button>
+			<div class="instance_info">
+				<button v-click-anime class="item _button instance" @click="openInstanceMenu">
+					<img :src="$instance.iconUrl || $instance.faviconUrl || '/favicon.ico'" alt="" class="icon"/>
+				</button>
+				<div class="instance_info_text">
+					<div class="instance_name">
+						{{ $instance.name || host }}
+					</div>
+					<I18n v-if="onlineUsersCount" :src="i18n.ts.onlineUsersCount" text-tag="span" class="text">
+						<template #n><b>{{ onlineUsersCount }}</b></template>
+					</I18n>
+				</div>
+			</div>
 		</div>
 		<div class="middle">
 			<MkA v-click-anime class="item index" active-class="active" to="/" exact>
@@ -133,6 +143,17 @@ function more() {
 	}, 'closed');
 }
 
+const onlineUsersCount = ref(0);
+const tick = () => {
+	os.api('get-online-users-count').then(res => {
+		onlineUsersCount.value = res.count;
+	});
+};
+useInterval(tick, 1000 * 15, {
+	immediate: true,
+	afterMounted: true,
+});
+
 function openProfile() {
 	mainRouter.push(`/@${ $i.username }`);
 }
@@ -166,21 +187,39 @@ function openProfile() {
 				mask-image: linear-gradient(0deg, rgba(0,0,0,0) 15%, rgba(0,0,0,0.75) 100%);
 			}
 
-			> .instance {
+			> .instance_info {
 				position: relative;
+				display: flex;
 				display: block;
+				> .instance {
 				text-align: center;
+					position: relative;
 				width: 100%;
-
-				> .icon {
-					display: inline-block;
-					width: 50px;
-					aspect-ratio: 1;
-					margin-right: 150px;
-					border-radius: 999px;
+					display: block;
+					text-align: center;
+					//width: 100%;
+					padding: 12px;
+	
+					> .icon {
+						display: inline-block;
+						width: 38px;
+						aspect-ratio: 1;
+					}
 				}
-			}
-		}
+
+				> .instance_info_text {
+					display: inline-block;
+					margin-top: auto;
+					width: 38px;
+					margin-bottom: auto;
+					aspect-ratio: 1;
+					margin-right: 12px;
+					> .instance_name {
+						font-size: small;
+					}
+					> .text {
+						font-size: smaller;
+					}
 
 		> .bottom {
 			position: sticky;
