@@ -4,7 +4,7 @@
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/morotesovtannu/cherrypick.git"
+		"url": "https://github.com/morotesovtannu/aozorapick.git"
 	},
 	"private": true,
 	"scripts": {

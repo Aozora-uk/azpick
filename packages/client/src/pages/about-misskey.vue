@@ -7,7 +7,7 @@
 				<div id="debug"></div>
 				<div ref="containerEl" v-panel class="_formBlock about" :class="{ playing: easterEggEngine != null }">
 					<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-					<div class="misskey">CherryPick</div>
+					<div class="misskey">Aozorapick(based on CherryPick/Misskey)</div>
 					<div class="version">v{{ version }}</div>
 					<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }"><MkEmoji class="emoji" :emoji="emoji.emoji" :custom-emojis="$instance.emojis" :is-reaction="false" :normal="true" :no-style="true"/></span>
 				</div>
@@ -19,7 +19,7 @@
 					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly :ablobcatheart:]"/> #あおぞらすきー</MkButton>
 				</div>
 				<FormSection>
-					<template #label>あおぞらすきー</template>
+					<template #label>Aozorasky</template>
 						<div class="_formLinks">
 							<FormLink to="https://aozora.uk" external>
 								<template #icon><i class="fas fa-globe"></i></template>
@@ -31,7 +31,7 @@
 								Status Page
 								<template #suffix>github.io</template>
 							</FormLink>
-							<FormLink to="https://github.com/rca-fedi/cherrypick" external>
+							<FormLink to="https://github.com/morotesovtannu/aozorapick" external>
 								<template #icon><i class="fas fa-code"></i></template>
 								{{ i18n.ts._aboutMisskey.source }}
 								<template #suffix>GitHub</template>

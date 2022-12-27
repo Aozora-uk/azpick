@@ -29,7 +29,7 @@
 				</div>
 				<div v-if="poweredBy" class="powered-by">
 					<b><MkA to="/">{{ host }}</MkA></b>
-					<small>Powered by <a href="https://github.com/rca-fedi/cherrypick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
+					<small>Powered by <a href="https://github.com/morotesovtannu/aozorapick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
 				</div>
 			</template>
 		</div>
