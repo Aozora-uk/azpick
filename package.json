@@ -4,7 +4,7 @@
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/morotesovtannu/aozorapick.git"
+		"url": "https://github.com/Aozora-uk/azpick"
 	},
 	"private": true,
 	"scripts": {

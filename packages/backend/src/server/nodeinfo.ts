@@ -39,7 +39,7 @@ const nodeinfo2 = async () => {
 
 	return {
 		software: {
-			name: 'aozorapick',
+			name: 'azpick',
 			version: config.version,
 			repository: meta.repositoryUrl,
 		},
