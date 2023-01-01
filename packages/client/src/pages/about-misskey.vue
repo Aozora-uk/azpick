@@ -7,7 +7,7 @@
 				<div id="debug"></div>
 				<div ref="containerEl" v-panel class="_formBlock about" :class="{ playing: easterEggEngine != null }">
 					<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-					<div class="misskey">Aozorapick(based on CherryPick/Misskey)</div>
+					<div class="misskey">AZPick(based on CherryPick/Misskey)</div>
 					<div class="version">v{{ version }}</div>
 					<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }"><MkEmoji class="emoji" :emoji="emoji.emoji" :custom-emojis="$instance.emojis" :is-reaction="false" :normal="true" :no-style="true"/></span>
 				</div>
@@ -15,8 +15,8 @@
 					{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/misskey.html" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
 				</div>
 				<div class="_formBlock" style="text-align: center;">
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveCherryPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly :ablobcatheart:]"/> #あおぞらすきー</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAZPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly :ablobcatheart:]"/> #Aozorasky</MkButton>
 				</div>
 				<FormSection>
 					<template #label>Aozorasky</template>
@@ -31,7 +31,7 @@
 								Status Page
 								<template #suffix>github.io</template>
 							</FormLink>
-							<FormLink to="https://github.com/morotesovtannu/aozorapick" external>
+							<FormLink to="https://github.com/Aozora-uk/azpick" external>
 								<template #icon><i class="fas fa-code"></i></template>
 								{{ i18n.ts._aboutMisskey.source }}
 								<template #suffix>GitHub</template>
@@ -100,6 +100,8 @@
 					<template #label>{{ i18n.ts._aboutMisskey.contributors }}</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/noridev" external>@noridev (CherryPick)</FormLink>
+						<FormLink to="https://github.com/r-ca" external>@r-ca (rca-fedi/Cherrypick)</FormLink>
+						<FormLink to="https://github.com/morotesovtannu" external>@morotesovtannu (AZPick)</FormLink>
 						<FormLink to="https://github.com/syuilo" external>@syuilo (Misskey)</FormLink>
 					</div>
 					<template #caption><MkLink url="https://github.com/misskey-dev/misskey/graphs/contributors">{{ i18n.ts._aboutMisskey.allContributors }}</MkLink></template>
