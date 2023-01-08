@@ -23,6 +23,11 @@ export default function(app: App) {
 	app.component('MkwButton', defineAsyncComponent(() => import('./button.vue')));
 	app.component('MkwAiscript', defineAsyncComponent(() => import('./aiscript.vue')));
 	app.component('MkwAichan', defineAsyncComponent(() => import('./aichan.vue')));
+<<<<<<< HEAD:packages/client/src/widgets/index.ts
+=======
+	app.component('MkwUserList', defineAsyncComponent(() => import('./user-list.vue')));
+	app.component('MkwClicker', defineAsyncComponent(() => import('./clicker.vue')));
+>>>>>>> 27c2ca504 (feat(client): 🍪👈):packages/frontend/src/widgets/index.ts
 }
 
 export const widgets = [
@@ -48,4 +53,9 @@ export const widgets = [
 	'button',
 	'aiscript',
 	'aichan',
+<<<<<<< HEAD:packages/client/src/widgets/index.ts
+=======
+	'userList',
+	'clicker',
+>>>>>>> 27c2ca504 (feat(client): 🍪👈):packages/frontend/src/widgets/index.ts
 ];
