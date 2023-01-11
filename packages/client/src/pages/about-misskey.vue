@@ -15,8 +15,8 @@
 					{{ i18n.ts._aboutMisskey.about }}<br><a href="https://misskey-hub.net/docs/misskey.html" target="_blank" class="_link">{{ i18n.ts.learnMore }}</a>
 				</div>
 				<div class="_formBlock" style="text-align: center;">
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAZPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozoraUk">I <Mfm text="$[jelly :ablobcatheart:]"/> #Aozorasky</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAZPick">I <Mfm text="$[jelly ❤]"/> #AZPick</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozorasky">I <Mfm text="$[jelly :ablobcatheart:]"/> #Aozorasky</MkButton>
 				</div>
 				<FormSection>
 					<template #label>Aozorasky</template>
@@ -27,14 +27,14 @@
 								<template #suffix>aozora.uk</template>
 							</FormLink>
 							<FormLink to="https://aozora-uk.github.io/statuspage" external>
-								<template #icon><i class="fas fa-tachometer-alt"></i></template>
+								<template #icon><i class="fad fa-plug"></i></template>
 								Status Page
 								<template #suffix>github.io</template>
 							</FormLink>
-							<FormLink to="https://github.com/Aozora-uk/azpick" external>
-								<template #icon><i class="fas fa-code"></i></template>
+							<FormLink to="https://git.aozora.uk/aozora-uk/azpick" external>
+								<template #icon><i class="fab fa-git-alt"></i></template>
 								{{ i18n.ts._aboutMisskey.source }}
-								<template #suffix>GitHub</template>
+								<template #suffix>Aozoragit</template>
 							</FormLink>
 						</div>
 				</FormSection>
@@ -42,7 +42,7 @@
 					<template #label>CherryPick</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/kokonect-link/cherrypick" external>
-							<template #icon><i class="fas fa-code"></i></template>
+							<template #icon><i class="fab fa-git-alt"></i></template>
 							{{ i18n.ts._aboutMisskey.source }}
 							<template #suffix>GitHub</template>
 						</FormLink>
@@ -244,13 +244,13 @@ function gravity() {
 	easterEggEngine = physics(containerEl);
 }
 
-function iLoveCherryPick() {
+function iLoveAZPick() {
 	os.post({
-		initialText: 'I $[jelly ❤] #CherryPick',
+		initialText: 'I $[jelly ❤] #AZPick',
 		instant: true,
 	});
 }
-function iLoveAozoraUk() {
+function iLoveAozorasky() {
 	os.post({
 		initialText: 'I $[jelly :ablobcatheart:] #あおぞらすきー',
 		instant: true,
