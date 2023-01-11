@@ -27,7 +27,7 @@
 								<template #suffix>aozora.uk</template>
 							</FormLink>
 							<FormLink to="https://aozora-uk.github.io/statuspage" external>
-								<template #icon><i class="fad fa-plug"></i></template>
+								<template #icon><i class="fas fa-plug"></i></template>
 								Status Page
 								<template #suffix>github.io</template>
 							</FormLink>
@@ -79,7 +79,7 @@
 					<template #label>Misskey</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/misskey-dev/misskey" external>
-							<template #icon><i class="fas fa-code"></i></template>
+							<template #icon><i class="fab fa-git-alt"></i></template>
 							{{ i18n.ts._aboutMisskey.source }}
 							<template #suffix>GitHub</template>
 						</FormLink>
