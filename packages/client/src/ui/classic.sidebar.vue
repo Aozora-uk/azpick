@@ -21,7 +21,7 @@
 	</template>
 	<div class="divider"></div>
 	<MkA v-if="$i.isAdmin || $i.isModerator" v-click-anime class="item" active-class="active" to="/admin" :behavior="settingsWindowed ? 'modalWindow' : null">
-		<i class="fas fa-shield-check fa-fw"></i><span class="text">{{ $ts.controlPanel }}</span>
+		<i class="fas fa-door-open fa-fw"></i><span class="text">{{ $ts.controlPanel }}</span>
 	</MkA>
 	<button v-click-anime class="item _button" @click="more">
 		<i class="fas fa-ellipsis-h fa-fw"></i><span class="text">{{ $ts.more }}</span>
