@@ -210,13 +210,10 @@ export function getNoteMenu(props: {
 				text: i18n.ts.copyContent,
 				action: copyContent,
 			}, {
-<<<<<<< HEAD
-=======
 				icon: 'fas fa-smile-wink',
 				text: i18n.ts.reactions,
 				action: showReactions,
 			}, {
->>>>>>> develop
 				icon: 'fas fa-link',
 				text: i18n.ts.copyLink,
 				action: copyLink,
