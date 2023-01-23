@@ -10,6 +10,9 @@
 この文書は、AZPickとCherryPickの変更事項のみを含みます。 Misskey全体の変更を確認するには、[CHANGELOG.md](CHANGELOG.md)文書を参照してください。
 また、Cherrypickの変更事項文はNAVER Papagoを使い翻訳したものです。間違いがある可能性もありますがご了承くださいませ。
 
+## ## 12.119.2-cp-3.0.0_ap-2.1.3 (2023/01/23)
+- 本家Misskey v13よりリアクションしたひと一覧を拝借 ( https://github.com/misskey-dev/misskey/commit/336d8fe785d5b26f85088659db022a45b74c5d9f )
+
 ## ## 12.119.2-cp-3.0.0_ap-2.1.0 (2022/12/27)
 - Aozoragitにrepo変更
 - ところどころアイコン変更
