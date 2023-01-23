@@ -216,7 +216,7 @@ export function getNoteMenu(props: {
 				text: i18n.ts.copyContent,
 				action: copyContent,
 			}, {
-				icon: 'fas fa-person-sign',
+				icon: 'fas fa-smile-wink',
 				text: i18n.ts.reactions,
 				action: showReactions,
 			}, {
