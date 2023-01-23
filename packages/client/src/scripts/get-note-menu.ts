@@ -179,6 +179,13 @@ export function getNoteMenu(props: {
 		});
 	}
 
+	
+	function showReactions(): void {
+		os.popup(defineAsyncComponent(() => import('@/components/MkReactedUsersDialog.vue')), {
+			noteId: appearNote.id,
+		}, {}, 'closed');
+	}
+	
 	async function translate(): Promise<void> {
 		if (props.translation.value != null) return;
 		props.translating.value = true;
