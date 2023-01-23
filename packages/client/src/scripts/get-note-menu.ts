@@ -178,6 +178,12 @@ export function getNoteMenu(props: {
 			url: `${url}/notes/${appearNote.id}`,
 		});
 	}
+	
+	function showReactions(): void {
+		os.popup(defineAsyncComponent(() => import('@/components/MkReactedUsersDialog.vue')), {
+			noteId: appearNote.id,
+		}, {}, 'closed');
+	}
 
 	async function translate(): Promise<void> {
 		if (props.translation.value != null) return;
@@ -209,6 +215,10 @@ export function getNoteMenu(props: {
 				icon: 'fas fa-copy',
 				text: i18n.ts.copyContent,
 				action: copyContent,
+			}, {
+				icon: 'fas fa-person-sign',
+				text: i18n.ts.reactions,
+				action: showReactions,
 			}, {
 				icon: 'fas fa-link',
 				text: i18n.ts.copyLink,
