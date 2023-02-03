@@ -1,7 +1,7 @@
 <template>
 <div>
 	<div v-if="game.ready" :class="$style.game">
-		<div :class="$style.count" class=""><i class="ti ti-cookie" style="font-size: 70%;"></i> {{ number(cookies) }}</div>
+		<div :class="$style.count" class=""><i class="fas fa-cookie" style="font-size: 70%;"></i> {{ number(cookies) }}</div>
 		<button v-click-anime class="_button" :class="$style.button" @click="onClick">
 			<img src="/client-assets/cookie.png" :class="$style.img">
 		</button>
