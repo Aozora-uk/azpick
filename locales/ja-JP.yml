@@ -1350,13 +1350,10 @@ _widgets:
   serverMetric: "サーバーメトリクス"
   aiscript: "AiScriptコンソール"
   aichan: "藍"
-<<<<<<< HEAD
-=======
   userList: "ユーザーリスト"
   _userList:
     chooseList: "リストを選択"
   clicker: "クリッカー"
->>>>>>> 27c2ca504 (feat(client): 🍪👈)
 
 _cw:
   hide: "隠す"
