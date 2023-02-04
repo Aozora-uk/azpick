@@ -8,7 +8,6 @@ import tooltip from './tooltip';
 import hotkey from './hotkey';
 import appear from './appear';
 import anim from './anim';
-import clickAnime from './click-anime';
 import panel from './panel';
 import adaptiveBorder from './adaptive-border';
 
@@ -22,7 +21,6 @@ export default function(app: App) {
 	app.directive('hotkey', hotkey);
 	app.directive('appear', appear);
 	app.directive('anim', anim);
-	app.directive('click-anime', clickAnime);
 	app.directive('panel', panel);
 	app.directive('adaptive-border', adaptiveBorder);
 }
