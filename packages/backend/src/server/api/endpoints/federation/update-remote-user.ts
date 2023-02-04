@@ -1,7 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { ApPersonService } from '@/core/activitypub/models/ApPersonService.js';
-import { GetterService } from '@/server/api/GetterService.js';
+import define from '../../define.js';
+import { getRemoteUser } from '../../common/getters.js';
+import { updatePerson } from '@/remote/activitypub/models/person.js';
 
 export const meta = {
 	tags: ['federation'],
@@ -18,15 +17,7 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private getterService: GetterService,
-		private apPersonService: ApPersonService,
-	) {
-		super(meta, paramDef, async (ps) => {
-			const user = await this.getterService.getRemoteUser(ps.userId);
-			await this.apPersonService.updatePerson(user.uri!);
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	const user = await getRemoteUser(ps.userId);
+	await updatePerson(user.uri!);
+});

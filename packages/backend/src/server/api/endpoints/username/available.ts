@@ -1,9 +1,6 @@
 import { IsNull } from 'typeorm';
-import { Inject, Injectable } from '@nestjs/common';
-import type { UsedUsernamesRepository, UsersRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { localUsernameSchema } from '@/models/entities/User.js';
-import { DI } from '@/di-symbols.js';
+import { Users, UsedUsernames } from '@/models/index.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['users'],
@@ -25,33 +22,22 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		username: localUsernameSchema,
+		username: Users.localUsernameSchema,
 	},
 	required: ['username'],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps) => {
+	// Get exist
+	const exist = await Users.countBy({
+		host: IsNull(),
+		usernameLower: ps.username.toLowerCase(),
+	});
 
-		@Inject(DI.usedUsernamesRepository)
-		private usedUsernamesRepository: UsedUsernamesRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Get exist
-			const exist = await this.usersRepository.countBy({
-				host: IsNull(),
-				usernameLower: ps.username.toLowerCase(),
-			});
+	const exist2 = await UsedUsernames.countBy({ username: ps.username.toLowerCase() });
 
-			const exist2 = await this.usedUsernamesRepository.countBy({ username: ps.username.toLowerCase() });
-
-			return {
-				available: exist === 0 && exist2 === 0,
-			};
-		});
-	}
-}
+	return {
+		available: exist === 0 && exist2 === 0,
+	};
+});

@@ -1,22 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import ms from 'ms';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository, NotesRepository } from '@/models/index.js';
-import type { Note } from '@/models/entities/Note.js';
-import type { CacheableLocalUser, User } from '@/models/entities/User.js';
-import { isActor, isPost, getApId } from '@/core/activitypub/type.js';
-import type { SchemaType } from '@/misc/schema.js';
-import { ApResolverService } from '@/core/activitypub/ApResolverService.js';
-import { ApDbResolverService } from '@/core/activitypub/ApDbResolverService.js';
-import { MetaService } from '@/core/MetaService.js';
-import { ApPersonService } from '@/core/activitypub/models/ApPersonService.js';
-import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { UtilityService } from '@/core/UtilityService.js';
-import { DI } from '@/di-symbols.js';
-import { bindThis } from '@/decorators.js';
+import define from '../../define.js';
+import config from '@/config/index.js';
+import { createPerson } from '@/remote/activitypub/models/person.js';
+import { createNote } from '@/remote/activitypub/models/note.js';
+import DbResolver from '@/remote/activitypub/db-resolver.js';
+import Resolver from '@/remote/activitypub/resolver.js';
 import { ApiError } from '../../error.js';
+import { extractDbHost } from '@/misc/convert-host.js';
+import { Users, Notes } from '@/models/index.js';
+import { Note } from '@/models/entities/note.js';
+import { CacheableLocalUser, User } from '@/models/entities/user.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { isActor, isPost, getApId } from '@/remote/activitypub/type.js';
+import ms from 'ms';
+import { SchemaType } from '@/misc/schema.js';
 
 export const meta = {
 	tags: ['federation'],
@@ -51,8 +47,8 @@ export const meta = {
 						type: 'object',
 						optional: false, nullable: false,
 						ref: 'UserDetailedNotMe',
-					},
-				},
+					}
+				}
 			},
 			{
 				type: 'object',
@@ -66,9 +62,9 @@ export const meta = {
 						type: 'object',
 						optional: false, nullable: false,
 						ref: 'Note',
-					},
-				},
-			},
+					}
+				}
+			}
 		],
 	},
 } as const;
@@ -82,90 +78,70 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
-
-		@Inject(DI.notesRepository)
-		private notesRepository: NotesRepository,
-
-		private utilityService: UtilityService,
-		private userEntityService: UserEntityService,
-		private noteEntityService: NoteEntityService,
-		private metaService: MetaService,
-		private apResolverService: ApResolverService,
-		private apDbResolverService: ApDbResolverService,
-		private apPersonService: ApPersonService,
-		private apNoteService: ApNoteService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const object = await this.fetchAny(ps.uri, me);
-			if (object) {
-				return object;
-			} else {
-				throw new ApiError(meta.errors.noSuchObject);
-			}
-		});
+export default define(meta, paramDef, async (ps, me) => {
+	const object = await fetchAny(ps.uri, me);
+	if (object) {
+		return object;
+	} else {
+		throw new ApiError(meta.errors.noSuchObject);
 	}
+});
 
-	/***
-	 * URIからUserかNoteを解決する
-	 */
-	@bindThis
-	private async fetchAny(uri: string, me: CacheableLocalUser | null | undefined): Promise<SchemaType<typeof meta['res']> | null> {
+/***
+ * URIからUserかNoteを解決する
+ */
+async function fetchAny(uri: string, me: CacheableLocalUser | null | undefined): Promise<SchemaType<typeof meta['res']> | null> {
 	// ブロックしてたら中断
-		const fetchedMeta = await this.metaService.fetch();
-		if (this.utilityService.isBlockedHost(fetchedMeta.blockedHosts, this.utilityService.extractDbHost(uri))) return null;
+	const fetchedMeta = await fetchMeta();
+	if (fetchedMeta.blockedHosts.includes(extractDbHost(uri))) return null;
 
-		let local = await this.mergePack(me, ...await Promise.all([
-			this.apDbResolverService.getUserFromApId(uri),
-			this.apDbResolverService.getNoteFromApId(uri),
+	const dbResolver = new DbResolver();
+
+	let local = await mergePack(me, ...await Promise.all([
+		dbResolver.getUserFromApId(uri),
+		dbResolver.getNoteFromApId(uri),
+	]));
+	if (local != null) return local;
+
+	// リモートから一旦オブジェクトフェッチ
+	const resolver = new Resolver();
+	const object = await resolver.resolve(uri) as any;
+
+	// /@user のような正規id以外で取得できるURIが指定されていた場合、ここで初めて正規URIが確定する
+	// これはDBに存在する可能性があるため再度DB検索
+	if (uri !== object.id) {
+		local = await mergePack(me, ...await Promise.all([
+			dbResolver.getUserFromApId(object.id),
+			dbResolver.getNoteFromApId(object.id),
 		]));
 		if (local != null) return local;
-
-		// リモートから一旦オブジェクトフェッチ
-		const resolver = this.apResolverService.createResolver();
-		const object = await resolver.resolve(uri) as any;
-
-		// /@user のような正規id以外で取得できるURIが指定されていた場合、ここで初めて正規URIが確定する
-		// これはDBに存在する可能性があるため再度DB検索
-		if (uri !== object.id) {
-			local = await this.mergePack(me, ...await Promise.all([
-				this.apDbResolverService.getUserFromApId(object.id),
-				this.apDbResolverService.getNoteFromApId(object.id),
-			]));
-			if (local != null) return local;
-		}
-
-		return await this.mergePack(
-			me,
-			isActor(object) ? await this.apPersonService.createPerson(getApId(object)) : null,
-			isPost(object) ? await this.apNoteService.createNote(getApId(object), undefined, true) : null,
-		);
 	}
 
-	@bindThis
-	private async mergePack(me: CacheableLocalUser | null | undefined, user: User | null | undefined, note: Note | null | undefined): Promise<SchemaType<typeof meta.res> | null> {
-		if (user != null) {
+	return await mergePack(
+		me,
+		isActor(object) ? await createPerson(getApId(object)) : null,
+		isPost(object) ? await createNote(getApId(object), undefined, true) : null,
+	);
+}
+
+async function mergePack(me: CacheableLocalUser | null | undefined, user: User | null | undefined, note: Note | null | undefined): Promise<SchemaType<typeof meta.res> | null> {
+	if (user != null) {
+		return {
+			type: 'User',
+			object: await Users.pack(user, me, { detail: true }),
+		};
+	} else if (note != null) {
+		try {
+			const object = await Notes.pack(note, me, { detail: true });
+
 			return {
-				type: 'User',
-				object: await this.userEntityService.pack(user, me, { detail: true }),
+				type: 'Note',
+				object,
 			};
-		} else if (note != null) {
-			try {
-				const object = await this.noteEntityService.pack(note, me, { detail: true });
-
-				return {
-					type: 'Note',
-					object,
-				};
-			} catch (e) {
-				return null;
-			}
+		} catch (e) {
+			return null;
 		}
-
-		return null;
 	}
+
+	return null;
 }

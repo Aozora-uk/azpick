@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { AuthSessionsRepository } from '@/models/index.js';
-import { AuthSessionEntityService } from '@/core/entities/AuthSessionEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
+import { AuthSessions } from '@/models/index.js';
 
 export const meta = {
 	tags: ['auth'],
@@ -49,25 +46,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.authSessionsRepository)
-		private authSessionsRepository: AuthSessionsRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	// Lookup session
+	const session = await AuthSessions.findOneBy({
+		token: ps.token,
+	});
 
-		private authSessionEntityService: AuthSessionEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Lookup session
-			const session = await this.authSessionsRepository.findOneBy({
-				token: ps.token,
-			});
-
-			if (session == null) {
-				throw new ApiError(meta.errors.noSuchSession);
-			}
-
-			return await this.authSessionEntityService.pack(session, me);
-		});
+	if (session == null) {
+		throw new ApiError(meta.errors.noSuchSession);
 	}
-}
+
+	return await AuthSessions.pack(session, user);
+});

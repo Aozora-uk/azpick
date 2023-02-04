@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { MutingsRepository } from '@/models/index.js';
-import { QueryService } from '@/core/QueryService.js';
-import { MutingEntityService } from '@/core/entities/MutingEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
+import { Mutings } from '@/models/index.js';
 
 export const meta = {
 	tags: ['account'],
@@ -34,24 +31,13 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.mutingsRepository)
-		private mutingsRepository: MutingsRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const query = makePaginationQuery(Mutings.createQueryBuilder('muting'), ps.sinceId, ps.untilId)
+		.andWhere(`muting.muterId = :meId`, { meId: me.id });
 
-		private mutingEntityService: MutingEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService.makePaginationQuery(this.mutingsRepository.createQueryBuilder('muting'), ps.sinceId, ps.untilId)
-				.andWhere('muting.muterId = :meId', { meId: me.id });
+	const mutings = await query
+		.take(ps.limit)
+		.getMany();
 
-			const mutings = await query
-				.take(ps.limit)
-				.getMany();
-
-			return await this.mutingEntityService.packMany(mutings, me);
-		});
-	}
-}
+	return await Mutings.packMany(mutings, me);
+});

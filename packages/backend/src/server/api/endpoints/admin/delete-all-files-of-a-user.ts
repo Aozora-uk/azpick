@@ -1,14 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository } from '@/models/index.js';
-import { DriveService } from '@/core/DriveService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { deleteFile } from '@/services/drive/delete-file.js';
+import { DriveFiles } from '@/models/index.js';
 
 export const meta = {
 	tags: ['admin'],
 
 	requireCredential: true,
-	requireAdmin: true,
+	requireModerator: true,
 } as const;
 
 export const paramDef = {
@@ -20,22 +18,12 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.driveFilesRepository)
-		private driveFilesRepository: DriveFilesRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const files = await DriveFiles.findBy({
+		userId: ps.userId,
+	});
 
-		private driveService: DriveService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const files = await this.driveFilesRepository.findBy({
-				userId: ps.userId,
-			});
-
-			for (const file of files) {
-				this.driveService.deleteFile(file);
-			}
-		});
+	for (const file of files) {
+		deleteFile(file);
 	}
-}
+});

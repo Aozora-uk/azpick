@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
+import define from '../define.js';
 import endpoints from '../endpoints.js';
 
 export const meta = {
@@ -30,12 +29,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-	) {
-		super(meta, paramDef, async () => {
-			return endpoints.map(x => x.name);
-		});
-	}
-}
+export default define(meta, paramDef, async () => {
+	return endpoints.map(x => x.name);
+});

@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { PagesRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { DI } from '@/di-symbols.js';
+import { Pages } from '@/models/index.js';
+import define from '../../define.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -35,22 +33,14 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.pagesRepository)
-		private pagesRepository: PagesRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const page = await this.pagesRepository.findOneBy({ id: ps.pageId });
-			if (page == null) {
-				throw new ApiError(meta.errors.noSuchPage);
-			}
-			if (page.userId !== me.id) {
-				throw new ApiError(meta.errors.accessDenied);
-			}
-
-			await this.pagesRepository.delete(page.id);
-		});
+export default define(meta, paramDef, async (ps, user) => {
+	const page = await Pages.findOneBy({ id: ps.pageId });
+	if (page == null) {
+		throw new ApiError(meta.errors.noSuchPage);
 	}
-}
+	if (page.userId !== user.id) {
+		throw new ApiError(meta.errors.accessDenied);
+	}
+
+	await Pages.delete(page.id);
+});

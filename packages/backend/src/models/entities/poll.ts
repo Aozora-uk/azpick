@@ -1,8 +1,8 @@
 import { PrimaryColumn, Entity, Index, JoinColumn, Column, OneToOne } from 'typeorm';
 import { id } from '../id.js';
+import { Note } from './note.js';
+import { User } from './user.js';
 import { noteVisibilities } from '../../types.js';
-import { Note } from './Note.js';
-import type { User } from './User.js';
 
 @Entity()
 export class Poll {
@@ -24,7 +24,7 @@ export class Poll {
 	public multiple: boolean;
 
 	@Column('varchar', {
-		length: 256, array: true, default: '{}',
+		length: 128, array: true, default: '{}',
 	})
 	public choices: string[];
 

@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository } from '@/models/index.js';
-import { QueryService } from '@/core/QueryService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { Users } from '@/models/index.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
 
 export const meta = {
 	tags: ['federation'],
@@ -33,24 +30,13 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const query = makePaginationQuery(Users.createQueryBuilder('user'), ps.sinceId, ps.untilId)
+		.andWhere(`user.host = :host`, { host: ps.host });
 
-		private userEntityService: UserEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService.makePaginationQuery(this.usersRepository.createQueryBuilder('user'), ps.sinceId, ps.untilId)
-				.andWhere('user.host = :host', { host: ps.host });
+	const users = await query
+		.take(ps.limit)
+		.getMany();
 
-			const users = await query
-				.take(ps.limit)
-				.getMany();
-
-			return await this.userEntityService.packMany(users, me, { detail: true });
-		});
-	}
-}
+	return await Users.packMany(users, me, { detail: true });
+});

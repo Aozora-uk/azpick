@@ -1,9 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { AntennasRepository } from '@/models/index.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
 import { ApiError } from '../../error.js';
+import { Antennas } from '@/models/index.js';
+import { publishInternalEvent } from '@/services/stream.js';
 
 export const meta = {
 	tags: ['antennas'],
@@ -30,27 +28,17 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.antennasRepository)
-		private antennasRepository: AntennasRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const antenna = await Antennas.findOneBy({
+		id: ps.antennaId,
+		userId: user.id,
+	});
 
-		private globalEventService: GlobalEventService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const antenna = await this.antennasRepository.findOneBy({
-				id: ps.antennaId,
-				userId: me.id,
-			});
-
-			if (antenna == null) {
-				throw new ApiError(meta.errors.noSuchAntenna);
-			}
-
-			await this.antennasRepository.delete(antenna.id);
-
-			this.globalEventService.publishInternalEvent('antennaDeleted', antenna);
-		});
+	if (antenna == null) {
+		throw new ApiError(meta.errors.noSuchAntenna);
 	}
-}
+
+	await Antennas.delete(antenna.id);
+
+	publishInternalEvent('antennaDeleted', antenna);
+});

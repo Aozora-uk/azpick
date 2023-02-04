@@ -1,12 +1,9 @@
 import ms from 'ms';
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository, BlockingsRepository } from '@/models/index.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { UserBlockingService } from '@/core/UserBlockingService.js';
-import { DI } from '@/di-symbols.js';
+import deleteBlocking from '@/services/blocking/delete.js';
+import define from '../../define.js';
 import { ApiError } from '../../error.js';
-import { GetterService } from '@/server/api/GetterService.js';
+import { getUser } from '../../common/getters.js';
+import { Blockings, Users } from '@/models/index.js';
 
 export const meta = {
 	tags: ['account'],
@@ -56,49 +53,34 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const blocker = await Users.findOneByOrFail({ id: user.id });
 
-		@Inject(DI.blockingsRepository)
-		private blockingsRepository: BlockingsRepository,
-
-		private userEntityService: UserEntityService,
-		private getterService: GetterService,
-		private userBlockingService: UserBlockingService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const blocker = await this.usersRepository.findOneByOrFail({ id: me.id });
-
-			// Check if the blockee is yourself
-			if (me.id === ps.userId) {
-				throw new ApiError(meta.errors.blockeeIsYourself);
-			}
-
-			// Get blockee
-			const blockee = await this.getterService.getUser(ps.userId).catch(err => {
-				if (err.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
-				throw err;
-			});
-
-			// Check not blocking
-			const exist = await this.blockingsRepository.findOneBy({
-				blockerId: blocker.id,
-				blockeeId: blockee.id,
-			});
-
-			if (exist == null) {
-				throw new ApiError(meta.errors.notBlocking);
-			}
-
-			// Delete blocking
-			await this.userBlockingService.unblock(blocker, blockee);
-
-			return await this.userEntityService.pack(blockee.id, blocker, {
-				detail: true,
-			});
-		});
+	// Check if the blockee is yourself
+	if (user.id === ps.userId) {
+		throw new ApiError(meta.errors.blockeeIsYourself);
 	}
-}
+
+	// Get blockee
+	const blockee = await getUser(ps.userId).catch(e => {
+		if (e.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
+		throw e;
+	});
+
+	// Check not blocking
+	const exist = await Blockings.findOneBy({
+		blockerId: blocker.id,
+		blockeeId: blockee.id,
+	});
+
+	if (exist == null) {
+		throw new ApiError(meta.errors.notBlocking);
+	}
+
+	// Delete blocking
+	await deleteBlocking(blocker, blockee);
+
+	return await Users.pack(blockee.id, blocker, {
+		detail: true,
+	});
+});

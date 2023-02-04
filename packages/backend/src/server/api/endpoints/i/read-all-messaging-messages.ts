@@ -1,8 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { MessagingMessagesRepository, UserGroupJoiningsRepository } from '@/models/index.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
-import { DI } from '@/di-symbols.js';
+import { publishMainStream } from '@/services/stream.js';
+import define from '../../define.js';
+import { MessagingMessages, UserGroupJoinings } from '@/models/index.js';
 
 export const meta = {
 	tags: ['account', 'messaging'],
@@ -19,38 +17,25 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.messagingMessagesRepository)
-		private messagingMessagesRepository: MessagingMessagesRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	// Update documents
+	await MessagingMessages.update({
+		recipientId: user.id,
+		isRead: false,
+	}, {
+		isRead: true,
+	});
 
-		@Inject(DI.userGroupJoiningsRepository)
-		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
+	const joinings = await UserGroupJoinings.findBy({ userId: user.id });
 
-		private globalEventService: GlobalEventService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Update documents
-			await this.messagingMessagesRepository.update({
-				recipientId: me.id,
-				isRead: false,
-			}, {
-				isRead: true,
-			});
+	await Promise.all(joinings.map(j => MessagingMessages.createQueryBuilder().update()
+		.set({
+			reads: (() => `array_append("reads", '${user.id}')`) as any,
+		})
+		.where(`groupId = :groupId`, { groupId: j.userGroupId })
+		.andWhere('userId != :userId', { userId: user.id })
+		.andWhere('NOT (:userId = ANY(reads))', { userId: user.id })
+		.execute()));
 
-			const joinings = await this.userGroupJoiningsRepository.findBy({ userId: me.id });
-
-			await Promise.all(joinings.map(j => this.messagingMessagesRepository.createQueryBuilder().update()
-				.set({
-					reads: (() => `array_append("reads", '${me.id}')`) as any,
-				})
-				.where('groupId = :groupId', { groupId: j.userGroupId })
-				.andWhere('userId != :userId', { userId: me.id })
-				.andWhere('NOT (:userId = ANY(reads))', { userId: me.id })
-				.execute()));
-
-			this.globalEventService.publishMainStream(me.id, 'readAllMessagingMessages');
-		});
-	}
-}
+	publishMainStream(user.id, 'readAllMessagingMessages');
+});

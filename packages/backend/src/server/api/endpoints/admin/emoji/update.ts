@@ -1,17 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { EmojisRepository } from '@/models/index.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
+import { Emojis } from '@/models/index.js';
 import { ApiError } from '../../../error.js';
-import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { db } from '@/db/postgre.js';
 
 export const meta = {
 	tags: ['admin'],
 
 	requireCredential: true,
-	requireRolePolicy: 'canManageCustomEmojis',
+	requireModerator: true,
 
 	errors: {
 		noSuchEmoji: {
@@ -39,50 +35,18 @@ export const paramDef = {
 	required: ['id', 'name', 'aliases'],
 } as const;
 
-// TODO: ロジックをサービスに切り出す
-
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.db)
-		private db: DataSource,
+export default define(meta, paramDef, async (ps) => {
+	const emoji = await Emojis.findOneBy({ id: ps.id });
 
-		@Inject(DI.emojisRepository)
-		private emojisRepository: EmojisRepository,
+	if (emoji == null) throw new ApiError(meta.errors.noSuchEmoji);
 
-		private emojiEntityService: EmojiEntityService,
-		private globalEventService: GlobalEventService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const emoji = await this.emojisRepository.findOneBy({ id: ps.id });
+	await Emojis.update(emoji.id, {
+		updatedAt: new Date(),
+		name: ps.name,
+		category: ps.category,
+		aliases: ps.aliases,
+	});
 
-			if (emoji == null) throw new ApiError(meta.errors.noSuchEmoji);
-
-			await this.emojisRepository.update(emoji.id, {
-				updatedAt: new Date(),
-				name: ps.name,
-				category: ps.category,
-				aliases: ps.aliases,
-			});
-
-			await this.db.queryResultCache!.remove(['meta_emojis']);
-
-			const updated = await this.emojiEntityService.pack(emoji.id);
-
-			if (emoji.name === ps.name) {
-				this.globalEventService.publishBroadcastStream('emojiUpdated', {
-					emojis: [ updated ],
-				});
-			} else {
-				this.globalEventService.publishBroadcastStream('emojiDeleted', {
-					emojis: [ await this.emojiEntityService.pack(emoji) ],
-				});
-
-				this.globalEventService.publishBroadcastStream('emojiAdded', {
-					emoji: updated,
-				});	
-			}
-		});
-	}
-}
+	await db.queryResultCache!.remove(['meta_emojis']);
+});

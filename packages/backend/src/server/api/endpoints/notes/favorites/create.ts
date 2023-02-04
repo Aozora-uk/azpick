@@ -1,12 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
-import ms from 'ms';
-import type { NoteFavoritesRepository } from '@/models/index.js';
-import { IdService } from '@/core/IdService.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { GetterService } from '@/server/api/GetterService.js';
-import { DI } from '@/di-symbols.js';
+import { NoteFavorites } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
-import { AchievementService } from '@/core/AchievementService.js';
+import { getNote } from '../../../common/getters.js';
 
 export const meta = {
 	tags: ['notes', 'favorites'],
@@ -14,11 +10,6 @@ export const meta = {
 	requireCredential: true,
 
 	kind: 'write:favorites',
-
-	limit: {
-		duration: ms('1hour'),
-		max: 20,
-	},
 
 	errors: {
 		noSuchNote: {
@@ -44,44 +35,28 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.noteFavoritesRepository)
-		private noteFavoritesRepository: NoteFavoritesRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	// Get favoritee
+	const note = await getNote(ps.noteId).catch(e => {
+		if (e.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
+		throw e;
+	});
 
-		private idService: IdService,
-		private getterService: GetterService,
-		private achievementService: AchievementService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Get favoritee
-			const note = await this.getterService.getNote(ps.noteId).catch(err => {
-				if (err.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
-				throw err;
-			});
+	// if already favorited
+	const exist = await NoteFavorites.findOneBy({
+		noteId: note.id,
+		userId: user.id,
+	});
 
-			// if already favorited
-			const exist = await this.noteFavoritesRepository.findOneBy({
-				noteId: note.id,
-				userId: me.id,
-			});
-
-			if (exist != null) {
-				throw new ApiError(meta.errors.alreadyFavorited);
-			}
-
-			// Create favorite
-			await this.noteFavoritesRepository.insert({
-				id: this.idService.genId(),
-				createdAt: new Date(),
-				noteId: note.id,
-				userId: me.id,
-			});
-
-			if (note.userHost == null) {
-				this.achievementService.create(note.userId, 'myNoteFavorited1');
-			}
-		});
+	if (exist != null) {
+		throw new ApiError(meta.errors.alreadyFavorited);
 	}
-}
+
+	// Create favorite
+	await NoteFavorites.insert({
+		id: genId(),
+		createdAt: new Date(),
+		noteId: note.id,
+		userId: user.id,
+	});
+});

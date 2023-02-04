@@ -1,12 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { IdService } from '@/core/IdService.js';
-import type { AnnouncementReadsRepository, AnnouncementsRepository } from '@/models/index.js';
-import type { UsersRepository } from '@/models/index.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
 import { ApiError } from '../../error.js';
+import { genId } from '@/misc/gen-id.js';
+import { AnnouncementReads, Announcements, Users } from '@/models/index.js';
+import { publishMainStream } from '@/services/stream.js';
 
 export const meta = {
 	tags: ['account'],
@@ -33,48 +29,33 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.announcementsRepository)
-		private announcementsRepository: AnnouncementsRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	// Check if announcement exists
+	const announcement = await Announcements.findOneBy({ id: ps.announcementId });
 
-		@Inject(DI.announcementReadsRepository)
-		private announcementReadsRepository: AnnouncementReadsRepository,
-
-		private userEntityService: UserEntityService,
-		private idService: IdService,
-		private globalEventService: GlobalEventService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Check if announcement exists
-			const announcement = await this.announcementsRepository.findOneBy({ id: ps.announcementId });
-
-			if (announcement == null) {
-				throw new ApiError(meta.errors.noSuchAnnouncement);
-			}
-
-			// Check if already read
-			const read = await this.announcementReadsRepository.findOneBy({
-				announcementId: ps.announcementId,
-				userId: me.id,
-			});
-
-			if (read != null) {
-				return;
-			}
-
-			// Create read
-			await this.announcementReadsRepository.insert({
-				id: this.idService.genId(),
-				createdAt: new Date(),
-				announcementId: ps.announcementId,
-				userId: me.id,
-			});
-
-			if (!await this.userEntityService.getHasUnreadAnnouncement(me.id)) {
-				this.globalEventService.publishMainStream(me.id, 'readAllAnnouncements');
-			}
-		});
+	if (announcement == null) {
+		throw new ApiError(meta.errors.noSuchAnnouncement);
 	}
-}
+
+	// Check if already read
+	const read = await AnnouncementReads.findOneBy({
+		announcementId: ps.announcementId,
+		userId: user.id,
+	});
+
+	if (read != null) {
+		return;
+	}
+
+	// Create read
+	await AnnouncementReads.insert({
+		id: genId(),
+		createdAt: new Date(),
+		announcementId: ps.announcementId,
+		userId: user.id,
+	});
+
+	if (!await Users.getHasUnreadAnnouncement(user.id)) {
+		publishMainStream(user.id, 'readAllAnnouncements');
+	}
+});

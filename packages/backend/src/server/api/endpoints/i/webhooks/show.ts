@@ -1,8 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { WebhooksRepository } from '@/models/index.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
+import { Webhooks } from '@/models/index.js';
 
 export const meta = {
 	tags: ['webhooks'],
@@ -29,23 +27,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.webhooksRepository)
-		private webhooksRepository: WebhooksRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const webhook = await this.webhooksRepository.findOneBy({
-				id: ps.webhookId,
-				userId: me.id,
-			});
+export default define(meta, paramDef, async (ps, user) => {
+	const webhook = await Webhooks.findOneBy({
+		id: ps.webhookId,
+		userId: user.id,
+	});
 
-			if (webhook == null) {
-				throw new ApiError(meta.errors.noSuchWebhook);
-			}
-
-			return webhook;
-		});
+	if (webhook == null) {
+		throw new ApiError(meta.errors.noSuchWebhook);
 	}
-}
+
+	return webhook;
+});
