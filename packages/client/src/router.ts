@@ -458,10 +458,6 @@ export const routes = [{
 	component: page(() => import('./pages/antenna-timeline.vue')),
 	loginRequired: true,
 }, {
-	path: '/clicker',
-	component: page(() => import('./pages/clicker.vue')),
-	loginRequired: true,
-}, {
 	name: 'index',
 	path: '/',
 	component: $i ? page(() => import('./pages/timeline.vue')) : page(() => import('./pages/welcome.vue')),
