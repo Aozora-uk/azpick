@@ -112,6 +112,11 @@ function openInstanceMenu(ev: MouseEvent) {
 			to: '/api-console',
 			text: 'API Console',
 			icon: 'fas fa-terminal',
+		}, {
+			type: 'link',
+			to: '/clicker',
+			text: '🍪👈',
+			icon: 'fas fa-cookie',
 		}, null, {
 			text: i18n.ts.document,
 			icon: 'fas fa-question-circle',
