@@ -1,6 +1,6 @@
 <template>
 <MkContainer :show-header="widgetProps.showHeader" class="mkw-clicker">
-	<template #header><i class="fas fa-cookie"></i>Clicker</template>
+	<template #header><i class="ti ti-cookie"></i>Clicker</template>
 	<MkClickerGame/>
 </MkContainer>
 </template>
