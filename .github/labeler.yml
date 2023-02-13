@@ -2,7 +2,7 @@
 - packages/backend/**/*
 
 '🖥️Client':
-- packages/frontend/**/*
+- packages/client/**/*
 
 '🧪Test':
 - cypress/**/*

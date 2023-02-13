@@ -1,9 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { GalleryLikesRepository, GalleryPostsRepository } from '@/models/index.js';
-import { IdService } from '@/core/IdService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
+import { GalleryPosts, GalleryLikes } from '@/models/index.js';
+import { genId } from '@/misc/gen-id.js';
 
 export const meta = {
 	tags: ['gallery'],
@@ -42,46 +40,33 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.galleryPostsRepository)
-		private galleryPostsRepository: GalleryPostsRepository,
-
-		@Inject(DI.galleryLikesRepository)
-		private galleryLikesRepository: GalleryLikesRepository,
-
-		private idService: IdService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const post = await this.galleryPostsRepository.findOneBy({ id: ps.postId });
-			if (post == null) {
-				throw new ApiError(meta.errors.noSuchPost);
-			}
-
-			if (post.userId === me.id) {
-				throw new ApiError(meta.errors.yourPost);
-			}
-
-			// if already liked
-			const exist = await this.galleryLikesRepository.findOneBy({
-				postId: post.id,
-				userId: me.id,
-			});
-
-			if (exist != null) {
-				throw new ApiError(meta.errors.alreadyLiked);
-			}
-
-			// Create like
-			await this.galleryLikesRepository.insert({
-				id: this.idService.genId(),
-				createdAt: new Date(),
-				postId: post.id,
-				userId: me.id,
-			});
-
-			this.galleryPostsRepository.increment({ id: post.id }, 'likedCount', 1);
-		});
+export default define(meta, paramDef, async (ps, user) => {
+	const post = await GalleryPosts.findOneBy({ id: ps.postId });
+	if (post == null) {
+		throw new ApiError(meta.errors.noSuchPost);
 	}
-}
+
+	if (post.userId === user.id) {
+		throw new ApiError(meta.errors.yourPost);
+	}
+
+	// if already liked
+	const exist = await GalleryLikes.findOneBy({
+		postId: post.id,
+		userId: user.id,
+	});
+
+	if (exist != null) {
+		throw new ApiError(meta.errors.alreadyLiked);
+	}
+
+	// Create like
+	await GalleryLikes.insert({
+		id: genId(),
+		createdAt: new Date(),
+		postId: post.id,
+		userId: user.id,
+	});
+
+	GalleryPosts.increment({ id: post.id }, 'likedCount', 1);
+});

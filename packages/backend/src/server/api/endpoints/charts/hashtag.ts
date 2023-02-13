@@ -1,13 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { getJsonSchema } from '@/core/chart/core.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import HashtagChart from '@/core/chart/charts/hashtag.js';
-import { schema } from '@/core/chart/charts/entities/hashtag.js';
+import { getJsonSchema } from '@/services/chart/core.js';
+import { hashtagChart } from '@/services/chart/index.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['charts', 'hashtags'],
 
-	res: getJsonSchema(schema),
+	res: getJsonSchema(hashtagChart.schema),
 
 	allowGet: true,
 	cacheSec: 60 * 60,
@@ -25,13 +23,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private hashtagChart: HashtagChart,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			return await this.hashtagChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null, ps.tag);
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	return await hashtagChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null, ps.tag);
+});

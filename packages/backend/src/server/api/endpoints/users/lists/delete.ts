@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { UserListsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { DI } from '@/di-symbols.js';
+import { UserLists } from '@/models/index.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -31,23 +29,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.userListsRepository)
-		private userListsRepository: UserListsRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const userList = await this.userListsRepository.findOneBy({
-				id: ps.listId,
-				userId: me.id,
-			});
+export default define(meta, paramDef, async (ps, user) => {
+	const userList = await UserLists.findOneBy({
+		id: ps.listId,
+		userId: user.id,
+	});
 
-			if (userList == null) {
-				throw new ApiError(meta.errors.noSuchList);
-			}
-
-			await this.userListsRepository.delete(userList.id);
-		});
+	if (userList == null) {
+		throw new ApiError(meta.errors.noSuchList);
 	}
-}
+
+	await UserLists.delete(userList.id);
+});

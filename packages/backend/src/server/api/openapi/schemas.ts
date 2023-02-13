@@ -1,5 +1,4 @@
-import type { Schema } from '@/misc/schema.js';
-import { refs } from '@/misc/schema.js';
+import { refs, Schema } from '@/misc/schema.js';
 
 export function convertSchemaToOpenApiSchema(schema: Schema) {
 	const res: any = schema;
@@ -56,6 +55,6 @@ export const schemas = {
 	},
 
 	...Object.fromEntries(
-		Object.entries(refs).map(([key, schema]) => [key, convertSchemaToOpenApiSchema(schema)]),
+		Object.entries(refs).map(([key, schema]) => [key, convertSchemaToOpenApiSchema(schema)])
 	),
 };

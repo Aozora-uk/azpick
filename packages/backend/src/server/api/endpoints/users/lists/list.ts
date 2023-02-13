@@ -1,8 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { UserListsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { UserListEntityService } from '@/core/entities/UserListEntityService.js';
-import { DI } from '@/di-symbols.js';
+import { UserLists } from '@/models/index.js';
+import define from '../../../define.js';
 
 export const meta = {
 	tags: ['lists', 'account'],
@@ -31,20 +28,10 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.userListsRepository)
-		private userListsRepository: UserListsRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const userLists = await UserLists.findBy({
+		userId: me.id,
+	});
 
-		private userListEntityService: UserListEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const userLists = await this.userListsRepository.findBy({
-				userId: me.id,
-			});
-
-			return await Promise.all(userLists.map(x => this.userListEntityService.pack(x)));
-		});
-	}
-}
+	return await Promise.all(userLists.map(x => UserLists.pack(x)));
+});

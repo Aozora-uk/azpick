@@ -1,9 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository } from '@/models/index.js';
-import { ModerationLogService } from '@/core/ModerationLogService.js';
-import { UserSuspendService } from '@/core/UserSuspendService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { Users } from '@/models/index.js';
+import { insertModerationLog } from '@/services/insert-moderation-log.js';
+import { doPostUnsuspend } from '@/services/unsuspend-user.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -21,31 +19,20 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const user = await Users.findOneBy({ id: ps.userId });
 
-		private userSuspendService: UserSuspendService,
-		private moderationLogService: ModerationLogService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const user = await this.usersRepository.findOneBy({ id: ps.userId });
-
-			if (user == null) {
-				throw new Error('user not found');
-			}
-
-			await this.usersRepository.update(user.id, {
-				isSuspended: false,
-			});
-
-			this.moderationLogService.insertModerationLog(me, 'unsuspend', {
-				targetId: user.id,
-			});
-
-			this.userSuspendService.doPostUnsuspend(user);
-		});
+	if (user == null) {
+		throw new Error('user not found');
 	}
-}
+
+	await Users.update(user.id, {
+		isSuspended: false,
+	});
+
+	insertModerationLog(me, 'unsuspend', {
+		targetId: user.id,
+	});
+
+	doPostUnsuspend(user);
+});

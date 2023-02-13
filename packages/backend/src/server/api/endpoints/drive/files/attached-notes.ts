@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { NotesRepository, DriveFilesRepository } from '@/models/index.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
+import { DriveFiles, Notes } from '@/models/index.js';
 
 export const meta = {
 	tags: ['drive', 'notes'],
@@ -42,35 +39,22 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.driveFilesRepository)
-		private driveFilesRepository: DriveFilesRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	// Fetch file
+	const file = await DriveFiles.findOneBy({
+		id: ps.fileId,
+		userId: user.id,
+	});
 
-		@Inject(DI.notesRepository)
-		private notesRepository: NotesRepository,
-
-		private noteEntityService: NoteEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Fetch file
-			const file = await this.driveFilesRepository.findOneBy({
-				id: ps.fileId,
-				userId: me.id,
-			});
-
-			if (file == null) {
-				throw new ApiError(meta.errors.noSuchFile);
-			}
-
-			const notes = await this.notesRepository.createQueryBuilder('note')
-				.where(':file = ANY(note.fileIds)', { file: file.id })
-				.getMany();
-
-			return await this.noteEntityService.packMany(notes, me, {
-				detail: true,
-			});
-		});
+	if (file == null) {
+		throw new ApiError(meta.errors.noSuchFile);
 	}
-}
+
+	const notes = await Notes.createQueryBuilder('note')
+		.where(':file = ANY(note.fileIds)', { file: file.id })
+		.getMany();
+
+	return await Notes.packMany(notes, user, {
+		detail: true,
+	});
+});

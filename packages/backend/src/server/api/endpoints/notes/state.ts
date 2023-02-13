@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository, NoteThreadMutingsRepository, NoteFavoritesRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { DI } from '@/di-symbols.js';
+import { NoteFavorites, Notes, NoteThreadMutings, NoteWatchings } from '@/models/index.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -13,6 +11,10 @@ export const meta = {
 		optional: false, nullable: false,
 		properties: {
 			isFavorited: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			isWatching: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -33,42 +35,36 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.notesRepository)
-		private notesRepository: NotesRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const note = await Notes.findOneByOrFail({ id: ps.noteId });
 
-		@Inject(DI.noteThreadMutingsRepository)
-		private noteThreadMutingsRepository: NoteThreadMutingsRepository,
+	const [favorite, watching, threadMuting] = await Promise.all([
+		NoteFavorites.count({
+			where: {
+				userId: user.id,
+				noteId: note.id,
+			},
+			take: 1,
+		}),
+		NoteWatchings.count({
+			where: {
+				userId: user.id,
+				noteId: note.id,
+			},
+			take: 1,
+		}),
+		NoteThreadMutings.count({
+			where: {
+				userId: user.id,
+				threadId: note.threadId || note.id,
+			},
+			take: 1,
+		}),
+	]);
 
-		@Inject(DI.noteFavoritesRepository)
-		private noteFavoritesRepository: NoteFavoritesRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const note = await this.notesRepository.findOneByOrFail({ id: ps.noteId });
-
-			const [favorite, threadMuting] = await Promise.all([
-				this.noteFavoritesRepository.count({
-					where: {
-						userId: me.id,
-						noteId: note.id,
-					},
-					take: 1,
-				}),
-				this.noteThreadMutingsRepository.count({
-					where: {
-						userId: me.id,
-						threadId: note.threadId || note.id,
-					},
-					take: 1,
-				}),
-			]);
-
-			return {
-				isFavorited: favorite !== 0,
-				isMutedThread: threadMuting !== 0,
-			};
-		});
-	}
-}
+	return {
+		isFavorited: favorite !== 0,
+		isWatching: watching !== 0,
+		isMutedThread: threadMuting !== 0,
+	};
+});

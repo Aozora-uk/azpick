@@ -1,15 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository, UsersRepository } from '@/models/index.js';
-import { isUserRelated } from '@/misc/is-user-related.js';
-import type { User } from '@/models/entities/User.js';
-import type { Packed } from '@/misc/schema.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { bindThis } from '@/decorators.js';
 import Channel from '../channel.js';
-import type { StreamMessages } from '../types.js';
+import { Notes, Users } from '@/models/index.js';
+import { isUserRelated } from '@/misc/is-user-related.js';
+import { User } from '@/models/entities/user.js';
+import { StreamMessages } from '../types.js';
+import { Packed } from '@/misc/schema.js';
 
-class ChannelChannel extends Channel {
+export default class extends Channel {
 	public readonly chName = 'channel';
 	public static shouldShare = false;
 	public static requireCredential = false;
@@ -17,19 +13,12 @@ class ChannelChannel extends Channel {
 	private typers: Record<User['id'], Date> = {};
 	private emitTypersIntervalId: ReturnType<typeof setInterval>;
 
-	constructor(
-		private noteEntityService: NoteEntityService,
-		private userEntityService: UserEntityService,
-
-		id: string,
-		connection: Channel['connection'],
-	) {
+	constructor(id: string, connection: Channel['connection']) {
 		super(id, connection);
-		//this.onNote = this.onNote.bind(this);
-		//this.emitTypers = this.emitTypers.bind(this);
+		this.onNote = this.onNote.bind(this);
+		this.emitTypers = this.emitTypers.bind(this);
 	}
 
-	@bindThis
 	public async init(params: any) {
 		this.channelId = params.channelId as string;
 
@@ -39,19 +28,18 @@ class ChannelChannel extends Channel {
 		this.emitTypersIntervalId = setInterval(this.emitTypers, 5000);
 	}
 
-	@bindThis
 	private async onNote(note: Packed<'Note'>) {
 		if (note.channelId !== this.channelId) return;
 
 		// リプライなら再pack
 		if (note.replyId != null) {
-			note.reply = await this.noteEntityService.pack(note.replyId, this.user, {
+			note.reply = await Notes.pack(note.replyId, this.user, {
 				detail: true,
 			});
 		}
 		// Renoteなら再pack
 		if (note.renoteId != null) {
-			note.renote = await this.noteEntityService.pack(note.renoteId, this.user, {
+			note.renote = await Notes.pack(note.renoteId, this.user, {
 				detail: true,
 			});
 		}
@@ -66,7 +54,6 @@ class ChannelChannel extends Channel {
 		this.send('note', note);
 	}
 
-	@bindThis
 	private onEvent(data: StreamMessages['channel']['payload']) {
 		if (data.type === 'typing') {
 			const id = data.body;
@@ -78,7 +65,6 @@ class ChannelChannel extends Channel {
 		}
 	}
 
-	@bindThis
 	private async emitTypers() {
 		const now = new Date();
 
@@ -87,7 +73,7 @@ class ChannelChannel extends Channel {
 			if (now.getTime() - date.getTime() > 5000) delete this.typers[userId];
 		}
 
-		const users = await this.userEntityService.packMany(Object.keys(this.typers), null, { detail: false });
+		const users = await Users.packMany(Object.keys(this.typers), null, { detail: false });
 
 		this.send({
 			type: 'typers',
@@ -95,34 +81,11 @@ class ChannelChannel extends Channel {
 		});
 	}
 
-	@bindThis
 	public dispose() {
 		// Unsubscribe events
 		this.subscriber.off('notesStream', this.onNote);
 		this.subscriber.off(`channelStream:${this.channelId}`, this.onEvent);
 
 		clearInterval(this.emitTypersIntervalId);
-	}
-}
-
-@Injectable()
-export class ChannelChannelService {
-	public readonly shouldShare = ChannelChannel.shouldShare;
-	public readonly requireCredential = ChannelChannel.requireCredential;
-
-	constructor(
-		private noteEntityService: NoteEntityService,
-		private userEntityService: UserEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): ChannelChannel {
-		return new ChannelChannel(
-			this.noteEntityService,
-			this.userEntityService,
-			id,
-			connection,
-		);
 	}
 }

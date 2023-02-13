@@ -1,12 +1,8 @@
 import { Brackets } from 'typeorm';
-import { Inject, Injectable } from '@nestjs/common';
-import type { UsersRepository, FollowingsRepository } from '@/models/index.js';
+import { Followings, Users } from '@/models/index.js';
 import { USER_ACTIVE_THRESHOLD } from '@/const.js';
-import type { User } from '@/models/entities/User.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { DI } from '@/di-symbols.js';
-import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
+import { User } from '@/models/entities/user.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['users'],
@@ -43,91 +39,78 @@ export const paramDef = {
 // TODO: avatar,bannerをJOINしたいけどエラーになる
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const activeThreshold = new Date(Date.now() - (1000 * 60 * 60 * 24 * 30)); // 30日
 
-		@Inject(DI.followingsRepository)
-		private followingsRepository: FollowingsRepository,
+	if (ps.host) {
+		const q = Users.createQueryBuilder('user')
+			.where('user.isSuspended = FALSE')
+			.andWhere('user.host LIKE :host', { host: ps.host.toLowerCase() + '%' });
 
-		private userEntityService: UserEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const activeThreshold = new Date(Date.now() - (1000 * 60 * 60 * 24 * 30)); // 30日
+		if (ps.username) {
+			q.andWhere('user.usernameLower LIKE :username', { username: ps.username.toLowerCase() + '%' });
+		}
 
-			if (ps.host) {
-				const q = this.usersRepository.createQueryBuilder('user')
-					.where('user.isSuspended = FALSE')
-					.andWhere('user.host LIKE :host', { host: sqlLikeEscape(ps.host.toLowerCase()) + '%' });
+		q.andWhere('user.updatedAt IS NOT NULL');
+		q.orderBy('user.updatedAt', 'DESC');
 
-				if (ps.username) {
-					q.andWhere('user.usernameLower LIKE :username', { username: sqlLikeEscape(ps.username.toLowerCase()) + '%' });
-				}
+		const users = await q.take(ps.limit).getMany();
 
-				q.andWhere('user.updatedAt IS NOT NULL');
-				q.orderBy('user.updatedAt', 'DESC');
+		return await Users.packMany(users, me, { detail: ps.detail });
+	} else if (ps.username) {
+		let users: User[] = [];
 
-				const users = await q.take(ps.limit).getMany();
+		if (me) {
+			const followingQuery = Followings.createQueryBuilder('following')
+				.select('following.followeeId')
+				.where('following.followerId = :followerId', { followerId: me.id });
 
-				return await this.userEntityService.packMany(users, me, { detail: ps.detail });
-			} else if (ps.username) {
-				let users: User[] = [];
+			const query = Users.createQueryBuilder('user')
+				.where(`user.id IN (${ followingQuery.getQuery() })`)
+				.andWhere('user.id != :meId', { meId: me.id })
+				.andWhere('user.isSuspended = FALSE')
+				.andWhere('user.usernameLower LIKE :username', { username: ps.username.toLowerCase() + '%' })
+				.andWhere(new Brackets(qb => { qb
+					.where('user.updatedAt IS NULL')
+					.orWhere('user.updatedAt > :activeThreshold', { activeThreshold: activeThreshold });
+				}));
 
-				if (me) {
-					const followingQuery = this.followingsRepository.createQueryBuilder('following')
-						.select('following.followeeId')
-						.where('following.followerId = :followerId', { followerId: me.id });
+			query.setParameters(followingQuery.getParameters());
 
-					const query = this.usersRepository.createQueryBuilder('user')
-						.where(`user.id IN (${ followingQuery.getQuery() })`)
-						.andWhere('user.id != :meId', { meId: me.id })
-						.andWhere('user.isSuspended = FALSE')
-						.andWhere('user.usernameLower LIKE :username', { username: sqlLikeEscape(ps.username.toLowerCase()) + '%' })
-						.andWhere(new Brackets(qb => { qb
-							.where('user.updatedAt IS NULL')
-							.orWhere('user.updatedAt > :activeThreshold', { activeThreshold: activeThreshold });
-						}));
+			users = await query
+				.orderBy('user.usernameLower', 'ASC')
+				.take(ps.limit)
+				.getMany();
 
-					query.setParameters(followingQuery.getParameters());
+			if (users.length < ps.limit) {
+				const otherQuery = await Users.createQueryBuilder('user')
+					.where(`user.id NOT IN (${ followingQuery.getQuery() })`)
+					.andWhere('user.id != :meId', { meId: me.id })
+					.andWhere('user.isSuspended = FALSE')
+					.andWhere('user.usernameLower LIKE :username', { username: ps.username.toLowerCase() + '%' })
+					.andWhere('user.updatedAt IS NOT NULL');
 
-					users = await query
-						.orderBy('user.usernameLower', 'ASC')
-						.take(ps.limit)
-						.getMany();
+				otherQuery.setParameters(followingQuery.getParameters());
 
-					if (users.length < ps.limit) {
-						const otherQuery = await this.usersRepository.createQueryBuilder('user')
-							.where(`user.id NOT IN (${ followingQuery.getQuery() })`)
-							.andWhere('user.id != :meId', { meId: me.id })
-							.andWhere('user.isSuspended = FALSE')
-							.andWhere('user.usernameLower LIKE :username', { username: sqlLikeEscape(ps.username.toLowerCase()) + '%' })
-							.andWhere('user.updatedAt IS NOT NULL');
+				const otherUsers = await otherQuery
+					.orderBy('user.updatedAt', 'DESC')
+					.take(ps.limit - users.length)
+					.getMany();
 
-						otherQuery.setParameters(followingQuery.getParameters());
-
-						const otherUsers = await otherQuery
-							.orderBy('user.updatedAt', 'DESC')
-							.take(ps.limit - users.length)
-							.getMany();
-
-						users = users.concat(otherUsers);
-					}
-				} else {
-					users = await this.usersRepository.createQueryBuilder('user')
-						.where('user.isSuspended = FALSE')
-						.andWhere('user.usernameLower LIKE :username', { username: sqlLikeEscape(ps.username.toLowerCase()) + '%' })
-						.andWhere('user.updatedAt IS NOT NULL')
-						.orderBy('user.updatedAt', 'DESC')
-						.take(ps.limit - users.length)
-						.getMany();
-				}
-
-				return await this.userEntityService.packMany(users, me, { detail: !!ps.detail });
+				users = users.concat(otherUsers);
 			}
+		} else {
+			users = await Users.createQueryBuilder('user')
+				.where('user.isSuspended = FALSE')
+				.andWhere('user.usernameLower LIKE :username', { username: ps.username.toLowerCase() + '%' })
+				.andWhere('user.updatedAt IS NOT NULL')
+				.orderBy('user.updatedAt', 'DESC')
+				.take(ps.limit - users.length)
+				.getMany();
+		}
 
-			return [];
-		});
+		return await Users.packMany(users, me, { detail: !!ps.detail });
 	}
-}
+
+	return [];
+});

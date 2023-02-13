@@ -1,13 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { getJsonSchema } from '@/core/chart/core.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import DriveChart from '@/core/chart/charts/drive.js';
-import { schema } from '@/core/chart/charts/entities/drive.js';
+import { getJsonSchema } from '@/services/chart/core.js';
+import { driveChart } from '@/services/chart/index.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['charts', 'drive'],
 
-	res: getJsonSchema(schema),
+	res: getJsonSchema(driveChart.schema),
 
 	allowGet: true,
 	cacheSec: 60 * 60,
@@ -24,13 +22,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private driveChart: DriveChart,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			return await this.driveChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null);
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	return await driveChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null);
+});

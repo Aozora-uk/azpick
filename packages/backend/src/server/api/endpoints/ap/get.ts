@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import ms from 'ms';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { ApResolverService } from '@/core/activitypub/ApResolverService.js';
+import define from '../../define.js';
+import Resolver from '@/remote/activitypub/resolver.js';
 import { ApiError } from '../../error.js';
+import ms from 'ms';
 
 export const meta = {
 	tags: ['federation'],
@@ -32,15 +31,8 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private apResolverService: ApResolverService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const resolver = this.apResolverService.createResolver();
-			const object = await resolver.resolve(ps.uri);
-			return object;
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	const resolver = new Resolver();
+	const object = await resolver.resolve(ps.uri);
+	return object;
+});

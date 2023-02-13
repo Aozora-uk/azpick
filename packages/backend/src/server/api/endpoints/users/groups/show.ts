@@ -1,8 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { UserGroupsRepository, UserGroupJoiningsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { UserGroupEntityService } from '@/core/entities/UserGroupEntityService.js';
-import { DI } from '@/di-symbols.js';
+import { UserGroups, UserGroupJoinings } from '@/models/index.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -38,37 +35,24 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.userGroupsRepository)
-		private userGroupsRepository: UserGroupsRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	// Fetch the group
+	const userGroup = await UserGroups.findOneBy({
+		id: ps.groupId,
+	});
 
-		@Inject(DI.userGroupJoiningsRepository)
-		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
-
-		private userGroupEntityService: UserGroupEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			// Fetch the group
-			const userGroup = await this.userGroupsRepository.findOneBy({
-				id: ps.groupId,
-			});
-
-			if (userGroup == null) {
-				throw new ApiError(meta.errors.noSuchGroup);
-			}
-
-			const joining = await this.userGroupJoiningsRepository.findOneBy({
-				userId: me.id,
-				userGroupId: userGroup.id,
-			});
-
-			if (joining == null && userGroup.userId !== me.id) {
-				throw new ApiError(meta.errors.noSuchGroup);
-			}
-
-			return await this.userGroupEntityService.pack(userGroup);
-		});
+	if (userGroup == null) {
+		throw new ApiError(meta.errors.noSuchGroup);
 	}
-}
+
+	const joining = await UserGroupJoinings.findOneBy({
+		userId: me.id,
+		userGroupId: userGroup.id,
+	});
+
+	if (joining == null && userGroup.userId !== me.id) {
+		throw new ApiError(meta.errors.noSuchGroup);
+	}
+
+	return await UserGroups.pack(userGroup);
+});

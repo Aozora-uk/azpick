@@ -1,55 +1,44 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository } from '@/models/index.js';
+import Channel from '../channel.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { Notes } from '@/models/index.js';
 import { checkWordMute } from '@/misc/check-word-mute.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
-import type { Packed } from '@/misc/schema.js';
-import { MetaService } from '@/core/MetaService.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { bindThis } from '@/decorators.js';
-import { RoleService } from '@/core/RoleService.js';
-import Channel from '../channel.js';
+import { Packed } from '@/misc/schema.js';
 
-class GlobalTimelineChannel extends Channel {
+export default class extends Channel {
 	public readonly chName = 'globalTimeline';
 	public static shouldShare = true;
 	public static requireCredential = false;
 
-	constructor(
-		private metaService: MetaService,
-		private roleService: RoleService,
-		private noteEntityService: NoteEntityService,
-
-		id: string,
-		connection: Channel['connection'],
-	) {
+	constructor(id: string, connection: Channel['connection']) {
 		super(id, connection);
-		//this.onNote = this.onNote.bind(this);
+		this.onNote = this.onNote.bind(this);
 	}
 
-	@bindThis
 	public async init(params: any) {
-		const policies = await this.roleService.getUserPolicies(this.user ? this.user.id : null);
-		if (!policies.gtlAvailable) return;
+		const meta = await fetchMeta();
+		if (meta.disableGlobalTimeline) {
+			if (this.user == null || (!this.user.isAdmin && !this.user.isModerator)) return;
+		}
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
 	}
 
-	@bindThis
 	private async onNote(note: Packed<'Note'>) {
 		if (note.visibility !== 'public') return;
 		if (note.channelId != null) return;
 
 		// リプライなら再pack
 		if (note.replyId != null) {
-			note.reply = await this.noteEntityService.pack(note.replyId, this.user, {
+			note.reply = await Notes.pack(note.replyId, this.user, {
 				detail: true,
 			});
 		}
 		// Renoteなら再pack
 		if (note.renoteId != null) {
-			note.renote = await this.noteEntityService.pack(note.renoteId, this.user, {
+			note.renote = await Notes.pack(note.renoteId, this.user, {
 				detail: true,
 			});
 		}
@@ -81,33 +70,8 @@ class GlobalTimelineChannel extends Channel {
 		this.send('note', note);
 	}
 
-	@bindThis
 	public dispose() {
 		// Unsubscribe events
 		this.subscriber.off('notesStream', this.onNote);
-	}
-}
-
-@Injectable()
-export class GlobalTimelineChannelService {
-	public readonly shouldShare = GlobalTimelineChannel.shouldShare;
-	public readonly requireCredential = GlobalTimelineChannel.requireCredential;
-
-	constructor(
-		private metaService: MetaService,
-		private roleService: RoleService,
-		private noteEntityService: NoteEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): GlobalTimelineChannel {
-		return new GlobalTimelineChannel(
-			this.metaService,
-			this.roleService,
-			this.noteEntityService,
-			id,
-			connection,
-		);
 	}
 }

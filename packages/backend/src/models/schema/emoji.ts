@@ -3,7 +3,7 @@ export const packedEmojiSchema = {
 	properties: {
 		id: {
 			type: 'string',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 			format: 'id',
 			example: 'xxxxxxxxxx',
 		},
@@ -26,12 +26,12 @@ export const packedEmojiSchema = {
 		},
 		host: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 			description: 'The local host is represented with `null`.',
 		},
 		url: {
 			type: 'string',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 		},
 	},
 } as const;

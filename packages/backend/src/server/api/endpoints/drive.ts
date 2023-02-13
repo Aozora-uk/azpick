@@ -1,8 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { MetaService } from '@/core/MetaService.js';
-import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
-import { RoleService } from '@/core/RoleService.js';
+import { fetchMeta } from '@/misc/fetch-meta.js';
+import { DriveFiles } from '@/models/index.js';
+import define from '../define.js';
 
 export const meta = {
 	tags: ['drive', 'account'],
@@ -34,25 +32,14 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private metaService: MetaService,
-		private driveFileEntityService: DriveFileEntityService,
-		private roleService: RoleService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const instance = await this.metaService.fetch(true);
+export default define(meta, paramDef, async (ps, user) => {
+	const instance = await fetchMeta(true);
 
-			// Calculate drive usage
-			const usage = await this.driveFileEntityService.calcDriveUsageOf(me.id);
+	// Calculate drive usage
+	const usage = await DriveFiles.calcDriveUsageOf(user.id);
 
-			const policies = await this.roleService.getUserPolicies(me.id);
-
-			return {
-				capacity: 1024 * 1024 * policies.driveCapacityMb,
-				usage: usage,
-			};
-		});
-	}
-}
+	return {
+		capacity: 1024 * 1024 * (user.driveCapacityOverrideMb || instance.localDriveCapacityMb),
+		usage: usage,
+	};
+});

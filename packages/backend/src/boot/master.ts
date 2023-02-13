@@ -6,12 +6,14 @@ import cluster from 'node:cluster';
 import chalk from 'chalk';
 import chalkTemplate from 'chalk-template';
 import semver from 'semver';
-import Logger from '@/logger.js';
-import { loadConfig } from '@/config.js';
-import type { Config } from '@/config.js';
+
+import Logger from '@/services/logger.js';
+import loadConfig from '@/config/load.js';
+import { Config } from '@/config/types.js';
+import { lessThan } from '@/prelude/array.js';
+import { envOption } from '../env.js';
 import { showMachineInfo } from '@/misc/show-machine-info.js';
-import { envOption } from '@/env.js';
-import { jobQueue, server } from './common.js';
+import { db, initDb } from '../db/postgre.js';
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
@@ -60,18 +62,10 @@ export async function masterMain() {
 		await showMachineInfo(bootLogger);
 		showNodejsVersion();
 		config = loadConfigBoot();
-		//await connectDb();
+		await connectDb();
 	} catch (e) {
 		bootLogger.error('Fatal error occurred during initialization', null, true);
 		process.exit(1);
-	}
-
-	if (envOption.onlyServer) {
-		await server();
-	} else if (envOption.onlyQueue) {
-		await jobQueue();
-	} else {
-		await server();
 	}
 
 	bootLogger.succ(chalk.hex('#ffa9c3')('Cherry') + chalk.hex('#95e3e8')('Pick') + (' initialized'));
@@ -81,6 +75,12 @@ export async function masterMain() {
 	}
 
 	bootLogger.succ(`Now listening on port ${config.port} on ${config.url}`, null, true);
+
+	if (!envOption.noDaemons) {
+		import('../daemons/server-stats.js').then(x => x.default());
+		import('../daemons/queue-stats.js').then(x => x.default());
+		import('../daemons/janitor.js').then(x => x.default());
+	}
 }
 
 function showEnvironment(): void {
@@ -116,7 +116,8 @@ function loadConfigBoot(): Config {
 		if (typeof exception === 'string') {
 			configLogger.error(exception);
 			process.exit(1);
-		} else if ((exception as any).code === 'ENOENT') {
+		}
+		if (exception.code === 'ENOENT') {
 			configLogger.error('Configuration file not found', null, true);
 			process.exit(1);
 		}
@@ -128,7 +129,6 @@ function loadConfigBoot(): Config {
 	return config;
 }
 
-/*
 async function connectDb(): Promise<void> {
 	const dbLogger = bootLogger.createSubLogger('db');
 
@@ -138,15 +138,14 @@ async function connectDb(): Promise<void> {
 		await initDb();
 		const v = await db.query('SHOW server_version').then(x => x[0].server_version);
 		dbLogger.succ(`Connected: v${v}`);
-	} catch (err) {
+	} catch (e) {
 		dbLogger.error('Cannot connect', null, true);
-		dbLogger.error(err);
+		dbLogger.error(e);
 		process.exit(1);
 	}
 }
-*/
 
-async function spawnWorkers(limit = 1) {
+async function spawnWorkers(limit: number = 1) {
 	const workers = Math.min(limit, os.cpus().length);
 	bootLogger.info(`Starting ${workers} worker${workers === 1 ? '' : 's'}...`);
 	await Promise.all([...Array(workers)].map(spawnWorker));
@@ -158,7 +157,7 @@ function spawnWorker(): Promise<void> {
 		const worker = cluster.fork();
 		worker.on('message', message => {
 			if (message === 'listenFailed') {
-				bootLogger.error('The server Listen failed due to the previous error.');
+				bootLogger.error(`The server Listen failed due to the previous error.`);
 				process.exit(1);
 			}
 			if (message !== 'ready') return;

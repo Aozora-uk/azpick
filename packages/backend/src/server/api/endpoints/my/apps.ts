@@ -1,8 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { AppsRepository } from '@/models/index.js';
-import { AppEntityService } from '@/core/entities/AppEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { Apps } from '@/models/index.js';
 
 export const meta = {
 	tags: ['account', 'app'],
@@ -30,28 +27,18 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.appsRepository)
-		private appsRepository: AppsRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const query = {
+		userId: user.id,
+	};
 
-		private appEntityService: AppEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = {
-				userId: me.id,
-			};
+	const apps = await Apps.find({
+		where: query,
+		take: ps.limit,
+		skip: ps.offset,
+	});
 
-			const apps = await this.appsRepository.find({
-				where: query,
-				take: ps.limit,
-				skip: ps.offset,
-			});
-
-			return await Promise.all(apps.map(app => this.appEntityService.pack(app, me, {
-				detail: true,
-			})));
-		});
-	}
-}
+	return await Promise.all(apps.map(app => Apps.pack(app, user, {
+		detail: true,
+	})));
+});
