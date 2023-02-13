@@ -1,11 +1,11 @@
 import { Entity, Index, JoinColumn, ManyToOne, Column, PrimaryColumn } from 'typeorm';
-import { User } from './user.js';
-import { id } from '../id.js';
-import { Note } from './note.js';
-import { FollowRequest } from './follow-request.js';
-import { UserGroupInvitation } from './user-group-invitation.js';
-import { AccessToken } from './access-token.js';
 import { notificationTypes } from '@/types.js';
+import { id } from '../id.js';
+import { User } from './User.js';
+import { Note } from './Note.js';
+import { FollowRequest } from './FollowRequest.js';
+import { UserGroupInvitation } from './UserGroupInvitation.js';
+import { AccessToken } from './AccessToken.js';
 
 @Entity()
 export class Notification {
@@ -55,15 +55,16 @@ export class Notification {
 	 * 通知の種類。
 	 * follow - フォローされた
 	 * mention - 投稿で自分が言及された
-	 * reply - (自分または自分がWatchしている)投稿が返信された
-	 * renote - (自分または自分がWatchしている)投稿がRenoteされた
-	 * quote - (自分または自分がWatchしている)投稿が引用Renoteされた
-	 * reaction - (自分または自分がWatchしている)投稿にリアクションされた
-	 * pollVote - (自分または自分がWatchしている)投稿のアンケートに投票された
+	 * reply - 投稿に返信された
+	 * renote - 投稿がRenoteされた
+	 * quote - 投稿が引用Renoteされた
+	 * reaction - 投稿にリアクションされた
+	 * pollVote - 投稿のアンケートに投票された (廃止)
 	 * pollEnded - 自分のアンケートもしくは自分が投票したアンケートが終了した
 	 * receiveFollowRequest - フォローリクエストされた
 	 * followRequestAccepted - 自分の送ったフォローリクエストが承認された
 	 * groupInvited - グループに招待された
+	 * achievementEarned - 実績を獲得
 	 * app - アプリ通知
 	 */
 	@Index()
@@ -128,6 +129,11 @@ export class Notification {
 		nullable: true,
 	})
 	public choice: number | null;
+
+	@Column('varchar', {
+		length: 128, nullable: true,
+	})
+	public achievement: string | null;
 
 	/**
 	 * アプリ通知のbody
