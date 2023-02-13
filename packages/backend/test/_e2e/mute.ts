@@ -23,7 +23,7 @@ describe('Mute', () => {
 		await shutdownServer(p);
 	});
 
-	test('ミュート作成', async () => {
+	it('ミュート作成', async () => {
 		const res = await request('/mute/create', {
 			userId: carol.id,
 		}, alice);
@@ -31,7 +31,7 @@ describe('Mute', () => {
 		assert.strictEqual(res.status, 204);
 	});
 
-	test('「自分宛ての投稿」にミュートしているユーザーの投稿が含まれない', async () => {
+	it('「自分宛ての投稿」にミュートしているユーザーの投稿が含まれない', async () => {
 		const bobNote = await post(bob, { text: '@alice hi' });
 		const carolNote = await post(carol, { text: '@alice hi' });
 
@@ -43,7 +43,7 @@ describe('Mute', () => {
 		assert.strictEqual(res.body.some((note: any) => note.id === carolNote.id), false);
 	});
 
-	test('ミュートしているユーザーからメンションされても、hasUnreadMentions が true にならない', async () => {
+	it('ミュートしているユーザーからメンションされても、hasUnreadMentions が true にならない', async () => {
 		// 状態リセット
 		await request('/i/read-all-unread-notes', {}, alice);
 
@@ -55,7 +55,7 @@ describe('Mute', () => {
 		assert.strictEqual(res.body.hasUnreadMentions, false);
 	});
 
-	test('ミュートしているユーザーからメンションされても、ストリームに unreadMention イベントが流れてこない', async () => {
+	it('ミュートしているユーザーからメンションされても、ストリームに unreadMention イベントが流れてこない', async () => {
 		// 状態リセット
 		await request('/i/read-all-unread-notes', {}, alice);
 
@@ -64,7 +64,7 @@ describe('Mute', () => {
 		assert.strictEqual(fired, false);
 	});
 
-	test('ミュートしているユーザーからメンションされても、ストリームに unreadNotification イベントが流れてこない', async () => {
+	it('ミュートしているユーザーからメンションされても、ストリームに unreadNotification イベントが流れてこない', async () => {
 		// 状態リセット
 		await request('/i/read-all-unread-notes', {}, alice);
 		await request('/notifications/mark-all-as-read', {}, alice);
@@ -75,7 +75,7 @@ describe('Mute', () => {
 	});
 
 	describe('Timeline', () => {
-		test('タイムラインにミュートしているユーザーの投稿が含まれない', async () => {
+		it('タイムラインにミュートしているユーザーの投稿が含まれない', async () => {
 			const aliceNote = await post(alice);
 			const bobNote = await post(bob);
 			const carolNote = await post(carol);
@@ -89,7 +89,7 @@ describe('Mute', () => {
 			assert.strictEqual(res.body.some((note: any) => note.id === carolNote.id), false);
 		});
 
-		test('タイムラインにミュートしているユーザーの投稿のRenoteが含まれない', async () => {
+		it('タイムラインにミュートしているユーザーの投稿のRenoteが含まれない', async () => {
 			const aliceNote = await post(alice);
 			const carolNote = await post(carol);
 			const bobNote = await post(bob, {
@@ -107,7 +107,7 @@ describe('Mute', () => {
 	});
 
 	describe('Notification', () => {
-		test('通知にミュートしているユーザーの通知が含まれない(リアクション)', async () => {
+		it('通知にミュートしているユーザーの通知が含まれない(リアクション)', async () => {
 			const aliceNote = await post(alice);
 			await react(bob, aliceNote, 'like');
 			await react(carol, aliceNote, 'like');

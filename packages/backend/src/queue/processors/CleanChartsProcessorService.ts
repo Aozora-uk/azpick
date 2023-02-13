@@ -12,6 +12,7 @@ import PerUserNotesChart from '@/core/chart/charts/per-user-notes.js';
 import PerUserPvChart from '@/core/chart/charts/per-user-pv.js';
 import DriveChart from '@/core/chart/charts/drive.js';
 import PerUserReactionsChart from '@/core/chart/charts/per-user-reactions.js';
+import HashtagChart from '@/core/chart/charts/hashtag.js';
 import PerUserFollowingChart from '@/core/chart/charts/per-user-following.js';
 import PerUserDriveChart from '@/core/chart/charts/per-user-drive.js';
 import ApRequestChart from '@/core/chart/charts/ap-request.js';
@@ -36,6 +37,7 @@ export class CleanChartsProcessorService {
 		private perUserPvChart: PerUserPvChart,
 		private driveChart: DriveChart,
 		private perUserReactionsChart: PerUserReactionsChart,
+		private hashtagChart: HashtagChart,
 		private perUserFollowingChart: PerUserFollowingChart,
 		private perUserDriveChart: PerUserDriveChart,
 		private apRequestChart: ApRequestChart,
@@ -59,6 +61,7 @@ export class CleanChartsProcessorService {
 			this.perUserPvChart.clean(),
 			this.driveChart.clean(),
 			this.perUserReactionsChart.clean(),
+			this.hashtagChart.clean(),
 			this.perUserFollowingChart.clean(),
 			this.perUserDriveChart.clean(),
 			this.apRequestChart.clean(),

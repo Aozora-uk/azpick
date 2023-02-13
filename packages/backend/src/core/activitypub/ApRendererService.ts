@@ -274,7 +274,7 @@ export class ApRendererService {
 		} as any;
 
 		if (reaction.startsWith(':')) {
-			const name = reaction.replaceAll(':', '');
+			const name = reaction.replace(/:/g, '');
 			const emoji = await this.emojisRepository.findOneBy({
 				name,
 				host: IsNull(),

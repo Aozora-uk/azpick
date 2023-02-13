@@ -27,7 +27,7 @@ describe('ActivityPub', () => {
 			content: 'あ',
 		};
 
-		test('Minimum Actor', async () => {
+		it('Minimum Actor', async () => {
 			const { MockResolver } = await import('../misc/mock-resolver.js');
 			const { createPerson } = await import('../../src/activitypub/models/person.js');
 
@@ -41,7 +41,7 @@ describe('ActivityPub', () => {
 			assert.deepStrictEqual(user.inbox, actor.inbox);
 		});
 
-		test('Minimum Note', async () => {
+		it('Minimum Note', async () => {
 			const { MockResolver } = await import('../misc/mock-resolver.js');
 			const { createNote } = await import('../../src/activitypub/models/note.js');
 
@@ -74,7 +74,7 @@ describe('ActivityPub', () => {
 			outbox: `${actorId}/outbox`,
 		};
 
-		test('Actor', async () => {
+		it('Actor', async () => {
 			const { MockResolver } = await import('../misc/mock-resolver.js');
 			const { createPerson } = await import('../../src/activitypub/models/person.js');
 

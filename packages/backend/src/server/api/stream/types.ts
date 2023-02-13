@@ -18,26 +18,31 @@ import { Following, Role, RoleAssignment } from '@/models';
 import type Emitter from 'strict-event-emitter-types';
 import type { EventEmitter } from 'events';
 
+// redis通すとDateのインスタンスはstringに変換されるので
+type Serialized<T> = {
+	[K in keyof T]: T[K] extends Date ? string : T[K];
+};
+
 //#region Stream type-body definitions
 export interface InternalStreamTypes {
-	userChangeSuspendedState: { id: User['id']; isSuspended: User['isSuspended']; };
-	userTokenRegenerated: { id: User['id']; oldToken: User['token']; newToken: User['token']; };
-	remoteUserUpdated: { id: User['id']; };
-	follow: { followerId: User['id']; followeeId: User['id']; };
-	unfollow: { followerId: User['id']; followeeId: User['id']; };
-	policiesUpdated: Role['policies'];
-	roleCreated: Role;
-	roleDeleted: Role;
-	roleUpdated: Role;
-	userRoleAssigned: RoleAssignment;
-	userRoleUnassigned: RoleAssignment;
-	webhookCreated: Webhook;
-	webhookDeleted: Webhook;
-	webhookUpdated: Webhook;
-	antennaCreated: Antenna;
-	antennaDeleted: Antenna;
-	antennaUpdated: Antenna;
-	metaUpdated: Meta;
+	userChangeSuspendedState: Serialized<{ id: User['id']; isSuspended: User['isSuspended']; }>;
+	userTokenRegenerated: Serialized<{ id: User['id']; oldToken: User['token']; newToken: User['token']; }>;
+	remoteUserUpdated: Serialized<{ id: User['id']; }>;
+	follow: Serialized<{ followerId: User['id']; followeeId: User['id']; }>;
+	unfollow: Serialized<{ followerId: User['id']; followeeId: User['id']; }>;
+	policiesUpdated: Serialized<Role['policies']>;
+	roleCreated: Serialized<Role>;
+	roleDeleted: Serialized<Role>;
+	roleUpdated: Serialized<Role>;
+	userRoleAssigned: Serialized<RoleAssignment>;
+	userRoleUnassigned: Serialized<RoleAssignment>;
+	webhookCreated: Serialized<Webhook>;
+	webhookDeleted: Serialized<Webhook>;
+	webhookUpdated: Serialized<Webhook>;
+	antennaCreated: Serialized<Antenna>;
+	antennaDeleted: Serialized<Antenna>;
+	antennaUpdated: Serialized<Antenna>;
+	metaUpdated: Serialized<Meta>;
 }
 
 export interface BroadcastTypes {
@@ -205,72 +210,63 @@ type EventUnionFromDictionary<
 	U = Events<T>
 > = U[keyof U];
 
-// redis通すとDateのインスタンスはstringに変換されるので
-type Serialized<T> = {
-	[K in keyof T]: T[K] extends Date ? string : T[K] extends Record<string, any> ? Serialized<T[K]> : T[K];
-};
-
-type SerializedAll<T> = {
-	[K in keyof T]: Serialized<T[K]>;
-};
-
 // name/messages(spec) pairs dictionary
 export type StreamMessages = {
 	internal: {
 		name: 'internal';
-		payload: EventUnionFromDictionary<SerializedAll<InternalStreamTypes>>;
+		payload: EventUnionFromDictionary<InternalStreamTypes>;
 	};
 	broadcast: {
 		name: 'broadcast';
-		payload: EventUnionFromDictionary<SerializedAll<BroadcastTypes>>;
+		payload: EventUnionFromDictionary<BroadcastTypes>;
 	};
 	user: {
 		name: `user:${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<UserStreamTypes>>;
+		payload: EventUnionFromDictionary<UserStreamTypes>;
 	};
 	main: {
 		name: `mainStream:${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<MainStreamTypes>>;
+		payload: EventUnionFromDictionary<MainStreamTypes>;
 	};
 	drive: {
 		name: `driveStream:${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<DriveStreamTypes>>;
+		payload: EventUnionFromDictionary<DriveStreamTypes>;
 	};
 	note: {
 		name: `noteStream:${Note['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<NoteStreamEventTypes>>;
+		payload: EventUnionFromDictionary<NoteStreamEventTypes>;
 	};
 	channel: {
 		name: `channelStream:${Channel['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<ChannelStreamTypes>>;
+		payload: EventUnionFromDictionary<ChannelStreamTypes>;
 	};
 	userList: {
 		name: `userListStream:${UserList['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<UserListStreamTypes>>;
+		payload: EventUnionFromDictionary<UserListStreamTypes>;
 	};
 	antenna: {
 		name: `antennaStream:${Antenna['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<AntennaStreamTypes>>;
+		payload: EventUnionFromDictionary<AntennaStreamTypes>;
 	};
 	messaging: {
 		name: `messagingStream:${User['id']}-${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<MessagingStreamTypes>>;
+		payload: EventUnionFromDictionary<MessagingStreamTypes>;
 	};
 	groupMessaging: {
 		name: `messagingStream:${UserGroup['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<GroupMessagingStreamTypes>>;
+		payload: EventUnionFromDictionary<GroupMessagingStreamTypes>;
 	};
 	messagingIndex: {
 		name: `messagingIndexStream:${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<MessagingIndexStreamTypes>>;
+		payload: EventUnionFromDictionary<MessagingIndexStreamTypes>;
 	};
 	admin: {
 		name: `adminStream:${User['id']}`;
-		payload: EventUnionFromDictionary<SerializedAll<AdminStreamTypes>>;
+		payload: EventUnionFromDictionary<AdminStreamTypes>;
 	};
 	notes: {
 		name: 'notesStream';
-		payload: Serialized<Packed<'Note'>>;
+		payload: Packed<'Note'>;
 	};
 };
 

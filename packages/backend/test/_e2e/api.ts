@@ -22,7 +22,7 @@ describe('API', () => {
 	});
 
 	describe('General validation', () => {
-		test('wrong type', async(async () => {
+		it('wrong type', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				string: 42,
@@ -30,14 +30,14 @@ describe('API', () => {
 			assert.strictEqual(res.status, 400);
 		}));
 
-		test('missing require param', async(async () => {
+		it('missing require param', async(async () => {
 			const res = await request('/test', {
 				string: 'a',
 			});
 			assert.strictEqual(res.status, 400);
 		}));
 
-		test('invalid misskey:id (empty string)', async(async () => {
+		it('invalid misskey:id (empty string)', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				id: '',
@@ -45,7 +45,7 @@ describe('API', () => {
 			assert.strictEqual(res.status, 400);
 		}));
 
-		test('valid misskey:id', async(async () => {
+		it('valid misskey:id', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				id: '8wvhjghbxu',
@@ -53,7 +53,7 @@ describe('API', () => {
 			assert.strictEqual(res.status, 200);
 		}));
 
-		test('default value', async(async () => {
+		it('default value', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				string: 'a',
@@ -62,7 +62,7 @@ describe('API', () => {
 			assert.strictEqual(res.body.default, 'hello');
 		}));
 
-		test('can set null even if it has default value', async(async () => {
+		it('can set null even if it has default value', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				nullableDefault: null,
@@ -71,7 +71,7 @@ describe('API', () => {
 			assert.strictEqual(res.body.nullableDefault, null);
 		}));
 
-		test('cannot set undefined if it has default value', async(async () => {
+		it('cannot set undefined if it has default value', async(async () => {
 			const res = await request('/test', {
 				required: true,
 				nullableDefault: undefined,

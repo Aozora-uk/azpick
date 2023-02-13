@@ -789,7 +789,7 @@ defineExpose({
 
 	&.modal {
 		width: 100%;
-		max-width: 800px;
+		max-width: 520px;
 	}
 }
 

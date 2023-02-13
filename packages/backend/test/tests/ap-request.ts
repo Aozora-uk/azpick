@@ -19,7 +19,7 @@ export const buildParsedSignature = (signingString: string, signature: string, a
 };
 
 describe('ap-request', () => {
-	test('createSignedPost with verify', async () => {
+	it('createSignedPost with verify', async () => {
 		const keypair = await genRsaKeyPair();
 		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
 		const url = 'https://example.com/inbox';
@@ -37,7 +37,7 @@ describe('ap-request', () => {
 		assert.deepStrictEqual(result, true);
 	});
 
-	test('createSignedGet with verify', async () => {
+	it('createSignedGet with verify', async () => {
 		const keypair = await genRsaKeyPair();
 		const key = { keyId: 'x', 'privateKeyPem': keypair.privateKey };
 		const url = 'https://example.com/outbox';

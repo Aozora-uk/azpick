@@ -4,6 +4,7 @@ import type { User } from '@/models/entities/User.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 import { IdService } from '@/core/IdService.js';
 import type { Hashtag } from '@/models/entities/Hashtag.js';
+import HashtagChart from '@/core/chart/charts/hashtag.js';
 import type { HashtagsRepository, UsersRepository } from '@/models/index.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
@@ -19,6 +20,7 @@ export class HashtagService {
 
 		private userEntityService: UserEntityService,
 		private idService: IdService,
+		private hashtagChart: HashtagChart,
 	) {
 	}
 
@@ -140,6 +142,10 @@ export class HashtagService {
 					attachedRemoteUsersCount: 0,
 				} as Hashtag);
 			}
+		}
+
+		if (!isUserAttached) {
+			this.hashtagChart.update(tag, user);
 		}
 	}
 }

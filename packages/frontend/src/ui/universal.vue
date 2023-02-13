@@ -150,7 +150,7 @@ if (window.innerWidth > 1024) {
 	}
 }
 
-defaultStore.loaded.then(() => {
+defaultStore.ready.then(() => {
 	if (defaultStore.state.widgets.length === 0) {
 		defaultStore.set('widgets', [{
 			name: 'calendar',

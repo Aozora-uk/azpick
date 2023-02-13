@@ -78,7 +78,7 @@ describe('Chart', () => {
 		if (db) await db.destroy();
 	});
 
-	test('Can updates', async () => {
+	it('Can updates', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -102,7 +102,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Can updates (dec)', async () => {
+	it('Can updates (dec)', async () => {
 		await testChart.decrement();
 		await testChart.save();
 
@@ -126,7 +126,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Empty chart', async () => {
+	it('Empty chart', async () => {
 		const chartHours = await testChart.getChart('hour', 3, null);
 		const chartDays = await testChart.getChart('day', 3, null);
 
@@ -147,7 +147,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Can updates at multiple times at same time', async () => {
+	it('Can updates at multiple times at same time', async () => {
 		await testChart.increment();
 		await testChart.increment();
 		await testChart.increment();
@@ -173,7 +173,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('複数回saveされてもデータの更新は一度だけ', async () => {
+	it('複数回saveされてもデータの更新は一度だけ', async () => {
 		await testChart.increment();
 		await testChart.save();
 		await testChart.save();
@@ -199,7 +199,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Can updates at different times', async () => {
+	it('Can updates at different times', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -230,7 +230,7 @@ describe('Chart', () => {
 
 	// 仕様上はこうなってほしいけど、実装は難しそうなのでskip
 	/*
-	test('Can updates at different times without save', async () => {
+	it('Can updates at different times without save', async () => {
 		await testChart.increment();
 
 		clock.tick('01:00:00');
@@ -259,7 +259,7 @@ describe('Chart', () => {
 	});
 	*/
 
-	test('Can padding', async () => {
+	it('Can padding', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -289,7 +289,7 @@ describe('Chart', () => {
 	});
 
 	// 要求された範囲にログがひとつもない場合でもパディングできる
-	test('Can padding from past range', async () => {
+	it('Can padding from past range', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -317,7 +317,7 @@ describe('Chart', () => {
 
 	// 要求された範囲の最も古い箇所に位置するログが存在しない場合でもパディングできる
 	// Issue #3190
-	test('Can padding from past range 2', async () => {
+	it('Can padding from past range 2', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -346,7 +346,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Can specify offset', async () => {
+	it('Can specify offset', async () => {
 		await testChart.increment();
 		await testChart.save();
 
@@ -375,7 +375,7 @@ describe('Chart', () => {
 		});
 	});
 
-	test('Can specify offset (floor time)', async () => {
+	it('Can specify offset (floor time)', async () => {
 		clock.tick('00:30:00');
 
 		await testChart.increment();
@@ -407,7 +407,7 @@ describe('Chart', () => {
 	});
 
 	describe('Grouped', () => {
-		test('Can updates', async () => {
+		it('Can updates', async () => {
 			await testGroupedChart.increment('alice');
 			await testGroupedChart.save();
 
@@ -451,7 +451,7 @@ describe('Chart', () => {
 	});
 
 	describe('Unique increment', () => {
-		test('Can updates', async () => {
+		it('Can updates', async () => {
 			await testUniqueChart.uniqueIncrement('alice');
 			await testUniqueChart.uniqueIncrement('alice');
 			await testUniqueChart.uniqueIncrement('bob');
@@ -470,7 +470,7 @@ describe('Chart', () => {
 		});
 
 		describe('Intersection', () => {
-			test('条件が満たされていない場合はカウントされない', async () => {
+			it('条件が満たされていない場合はカウントされない', async () => {
 				await testIntersectionChart.addA('alice');
 				await testIntersectionChart.addA('bob');
 				await testIntersectionChart.addB('carol');
@@ -492,7 +492,7 @@ describe('Chart', () => {
 				});
 			});
 
-			test('条件が満たされている場合にカウントされる', async () => {
+			it('条件が満たされている場合にカウントされる', async () => {
 				await testIntersectionChart.addA('alice');
 				await testIntersectionChart.addA('bob');
 				await testIntersectionChart.addB('carol');
@@ -518,7 +518,7 @@ describe('Chart', () => {
 	});
 
 	describe('Resync', () => {
-		test('Can resync', async () => {
+		it('Can resync', async () => {
 			testChart.total = 1;
 
 			await testChart.resync();
@@ -543,7 +543,7 @@ describe('Chart', () => {
 			});
 		});
 
-		test('Can resync (2)', async () => {
+		it('Can resync (2)', async () => {
 			await testChart.increment();
 			await testChart.save();
 

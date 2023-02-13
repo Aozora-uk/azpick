@@ -6,20 +6,19 @@
 	</div>
 </div>
 <div v-else class="kkjnbbplepmiyuadieoenjgutgcmtsvu">
-	<vue-plyr>
-		<video
-			controls
-			crossorigin
-			playsinline
-			:data-poster="video.thumbnailUrl"
+	<video
+		:poster="video.thumbnailUrl"
+		:title="video.comment"
+		:alt="video.comment"
+		preload="none"
+		controls
+		@contextmenu.stop
+	>
+		<source 
+			:src="video.url" 
+			:type="video.type"
 		>
-			<source
-				size="720"
-				:src="video.url" 
-				:type="video.type"
-			/>
-		</video>
-	</vue-plyr>
+	</video>
 	<i class="ti ti-eye-off" @click="hide = true"></i>
 </div>
 </template>
@@ -27,9 +26,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import * as misskey from 'misskey-js';
-import VuePlyr from 'vue-plyr';
 import { defaultStore } from '@/store';
-import 'vue-plyr/dist/vue-plyr.css';
 
 const props = defineProps<{
 	video: misskey.entities.DriveFile;
@@ -41,8 +38,6 @@ const hide = ref((defaultStore.state.nsfw === 'force') ? true : props.video.isSe
 <style lang="scss" scoped>
 .kkjnbbplepmiyuadieoenjgutgcmtsvu {
 	position: relative;
-
-	--plyr-color-main: var(--accent);
 
 	> i {
 		display: block;

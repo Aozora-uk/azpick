@@ -12,6 +12,9 @@ import endpoints, { IEndpoint } from './endpoints.js';
 import { ApiCallService } from './ApiCallService.js';
 import { SignupApiService } from './SignupApiService.js';
 import { SigninApiService } from './SigninApiService.js';
+import { GithubServerService } from './integration/GithubServerService.js';
+import { DiscordServerService } from './integration/DiscordServerService.js';
+import { TwitterServerService } from './integration/TwitterServerService.js';
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
 @Injectable()
@@ -35,6 +38,9 @@ export class ApiServerService {
 		private apiCallService: ApiCallService,
 		private signupApiService: SignupApiService,
 		private signinApiService: SigninApiService,
+		private githubServerService: GithubServerService,
+		private discordServerService: DiscordServerService,
+		private twitterServerService: TwitterServerService,
 	) {
 		//this.createServer = this.createServer.bind(this);
 	}
@@ -126,6 +132,10 @@ export class ApiServerService {
 		}>('/signin', (request, reply) => this.signinApiService.signin(request, reply));
 
 		fastify.post<{ Body: { code: string; } }>('/signup-pending', (request, reply) => this.signupApiService.signupPending(request, reply));
+
+		fastify.register(this.discordServerService.create);
+		fastify.register(this.githubServerService.create);
+		fastify.register(this.twitterServerService.create);
 
 		fastify.get('/v1/instance/peers', async (request, reply) => {
 			const instances = await this.instancesRepository.find({

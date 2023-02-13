@@ -35,7 +35,7 @@ describe('MetaService', () => {
 		await app.close();
 	});
 
-	test('fetch (cache)', async () => {
+	it('fetch (cache)', async () => {
 		const db = app.get<DataSource>(DI.db);
 		const spy = jest.spyOn(db, 'transaction');
 
@@ -45,7 +45,7 @@ describe('MetaService', () => {
 		expect(spy).toHaveBeenCalledTimes(0);
 	});
 
-	test('fetch (force)', async () => {
+	it('fetch (force)', async () => {
 		const db = app.get<DataSource>(DI.db);
 		const spy = jest.spyOn(db, 'transaction');
 
