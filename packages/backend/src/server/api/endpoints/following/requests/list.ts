@@ -1,9 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { QueryService } from '@/core/QueryService.js';
-import type { FollowRequestsRepository } from '@/models/index.js';
-import { FollowRequestEntityService } from '@/core/entities/FollowRequestEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
+import { FollowRequests } from '@/models/index.js';
 
 export const meta = {
 	tags: ['following', 'account'],
@@ -41,33 +37,15 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {
-		sinceId: { type: 'string', format: 'misskey:id' },
-		untilId: { type: 'string', format: 'misskey:id' },
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-	},
+	properties: {},
 	required: [],
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.followRequestsRepository)
-		private followRequestsRepository: FollowRequestsRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const reqs = await FollowRequests.findBy({
+		followeeId: user.id,
+	});
 
-		private followRequestEntityService: FollowRequestEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService.makePaginationQuery(this.followRequestsRepository.createQueryBuilder('request'), ps.sinceId, ps.untilId)
-				.andWhere('request.followeeId = :meId', { meId: me.id });
-
-			const requests = await query
-				.take(ps.limit)
-				.getMany();
-
-			return await Promise.all(requests.map(req => this.followRequestEntityService.pack(req)));
-		});
-	}
-}
+	return await Promise.all(reqs.map(req => FollowRequests.pack(req)));
+});

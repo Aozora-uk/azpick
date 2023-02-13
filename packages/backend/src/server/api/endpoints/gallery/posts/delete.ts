@@ -1,8 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { GalleryPostsRepository } from '@/models/index.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
+import { GalleryPosts } from '@/models/index.js';
 
 export const meta = {
 	tags: ['gallery'],
@@ -29,23 +27,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.galleryPostsRepository)
-		private galleryPostsRepository: GalleryPostsRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const post = await this.galleryPostsRepository.findOneBy({
-				id: ps.postId,
-				userId: me.id,
-			});
+export default define(meta, paramDef, async (ps, user) => {
+	const post = await GalleryPosts.findOneBy({
+		id: ps.postId,
+		userId: user.id,
+	});
 
-			if (post == null) {
-				throw new ApiError(meta.errors.noSuchPost);
-			}
-
-			await this.galleryPostsRepository.delete(post.id);
-		});
+	if (post == null) {
+		throw new ApiError(meta.errors.noSuchPost);
 	}
-}
+
+	await GalleryPosts.delete(post.id);
+});

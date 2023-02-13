@@ -1,5 +1,5 @@
 declare module 'probe-image-size' {
-	import type { ReadStream } from 'node:fs';
+	import { ReadStream } from 'node:fs';
 
 	type ProbeOptions = {
 		retries: 1;

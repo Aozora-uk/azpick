@@ -1,11 +1,10 @@
 import RE2 from 're2';
-import type { Note } from '@/models/entities/Note.js';
-import type { User } from '@/models/entities/User.js';
+import { Note } from '@/models/entities/note.js';
+import { User } from '@/models/entities/user.js';
 
 type NoteLike = {
 	userId: Note['userId'];
 	text: Note['text'];
-	cw?: Note['cw'];
 };
 
 type UserLike = {

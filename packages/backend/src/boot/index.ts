@@ -1,27 +1,43 @@
-
-/**
- * CherryPick Entry Point!
- */
-
 import cluster from 'node:cluster';
-import { EventEmitter } from 'node:events';
 import chalk from 'chalk';
 import Xev from 'xev';
-import Logger from '@/logger.js';
+
+import Logger from '@/services/logger.js';
 import { envOption } from '../env.js';
+
+// for typeorm
+import 'reflect-metadata';
 import { masterMain } from './master.js';
 import { workerMain } from './worker.js';
-
-import 'reflect-metadata';
-
-process.title = `CherryPick (${cluster.isPrimary ? 'master' : 'worker'})`;
-
-Error.stackTraceLimit = Infinity;
-EventEmitter.defaultMaxListeners = 128;
 
 const logger = new Logger('core', 'cyan');
 const clusterLogger = logger.createSubLogger('cluster', 'orange', false);
 const ev = new Xev();
+
+/**
+ * Init process
+ */
+export default async function() {
+	process.title = `CherryPick (${cluster.isPrimary ? 'master' : 'worker'})`;
+
+	if (cluster.isPrimary || envOption.disableClustering) {
+		await masterMain();
+
+		if (cluster.isPrimary) {
+			ev.mount();
+		}
+	}
+
+	if (cluster.isWorker || envOption.disableClustering) {
+		await workerMain();
+	}
+
+	// ユニットテスト時にCherryPickが子プロセスで起動された時のため
+	// それ以外のときは process.send は使えないので弾く
+	if (process.send) {
+		process.send('ok');
+	}
+}
 
 //#region Events
 
@@ -52,7 +68,6 @@ if (!envOption.quiet) {
 process.on('uncaughtException', err => {
 	try {
 		logger.error(err);
-		console.trace(err);
 	} catch { }
 });
 
@@ -62,21 +77,3 @@ process.on('exit', code => {
 });
 
 //#endregion
-
-if (cluster.isPrimary || envOption.disableClustering) {
-	await masterMain();
-
-	if (cluster.isPrimary) {
-		ev.mount();
-	}
-}
-
-if (cluster.isWorker || envOption.disableClustering) {
-	await workerMain();
-}
-
-// ユニットテスト時にMisskeyが子プロセスで起動された時のため
-// それ以外のときは process.send は使えないので弾く
-if (process.send) {
-	process.send('ok');
-}

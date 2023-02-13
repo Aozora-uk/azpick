@@ -1,10 +1,8 @@
 import ms from 'ms';
-import { Inject, Injectable } from '@nestjs/common';
-import type { UsersRepository, FollowingsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { QueryService } from '@/core/QueryService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { DI } from '@/di-symbols.js';
+import { Users, Followings } from '@/models/index.js';
+import define from '../../define.js';
+import { generateMutedUserQueryForUsers } from '../../common/generate-muted-user-query.js';
+import { generateBlockedUserQuery, generateBlockQueryForUsers } from '../../common/generate-block-query.js';
 
 export const meta = {
 	tags: ['users'],
@@ -36,43 +34,29 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const query = Users.createQueryBuilder('user')
+		.where('user.isLocked = FALSE')
+		.andWhere('user.isExplorable = TRUE')
+		.andWhere('user.host IS NULL')
+		.andWhere('user.updatedAt >= :date', { date: new Date(Date.now() - ms('7days')) })
+		.andWhere('user.id != :meId', { meId: me.id })
+		.orderBy('user.followersCount', 'DESC');
 
-		@Inject(DI.followingsRepository)
-		private followingsRepository: FollowingsRepository,
-		
-		private userEntityService: UserEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.usersRepository.createQueryBuilder('user')
-				.where('user.isLocked = FALSE')
-				.andWhere('user.isExplorable = TRUE')
-				.andWhere('user.host IS NULL')
-				.andWhere('user.updatedAt >= :date', { date: new Date(Date.now() - ms('7days')) })
-				.andWhere('user.id != :meId', { meId: me.id })
-				.orderBy('user.followersCount', 'DESC');
+	generateMutedUserQueryForUsers(query, me);
+	generateBlockQueryForUsers(query, me);
+	generateBlockedUserQuery(query, me);
 
-			this.queryService.generateMutedUserQueryForUsers(query, me);
-			this.queryService.generateBlockQueryForUsers(query, me);
-			this.queryService.generateBlockedUserQuery(query, me);
+	const followingQuery = Followings.createQueryBuilder('following')
+		.select('following.followeeId')
+		.where('following.followerId = :followerId', { followerId: me.id });
 
-			const followingQuery = this.followingsRepository.createQueryBuilder('following')
-				.select('following.followeeId')
-				.where('following.followerId = :followerId', { followerId: me.id });
+	query
+		.andWhere(`user.id NOT IN (${ followingQuery.getQuery() })`);
 
-			query
-				.andWhere(`user.id NOT IN (${ followingQuery.getQuery() })`);
+	query.setParameters(followingQuery.getParameters());
 
-			query.setParameters(followingQuery.getParameters());
+	const users = await query.take(ps.limit).skip(ps.offset).getMany();
 
-			const users = await query.take(ps.limit).skip(ps.offset).getMany();
-
-			return await this.userEntityService.packMany(users, me, { detail: true });
-		});
-	}
-}
+	return await Users.packMany(users, me, { detail: true });
+});

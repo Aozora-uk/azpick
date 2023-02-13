@@ -1,13 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { getJsonSchema } from '@/core/chart/core.js';
-import PerUserFollowingChart from '@/core/chart/charts/per-user-following.js';
-import { schema } from '@/core/chart/charts/entities/per-user-following.js';
+import define from '../../../define.js';
+import { getJsonSchema } from '@/services/chart/core.js';
+import { perUserFollowingChart } from '@/services/chart/index.js';
 
 export const meta = {
 	tags: ['charts', 'users', 'following'],
 
-	res: getJsonSchema(schema),
+	res: getJsonSchema(perUserFollowingChart.schema),
 
 	allowGet: true,
 	cacheSec: 60 * 60,
@@ -25,13 +23,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private perUserFollowingChart: PerUserFollowingChart,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			return await this.perUserFollowingChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null, ps.userId);
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	return await perUserFollowingChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null, ps.userId);
+});

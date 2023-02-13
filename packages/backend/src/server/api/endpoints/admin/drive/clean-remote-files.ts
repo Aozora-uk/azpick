@@ -1,6 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { QueueService } from '@/core/QueueService.js';
+import define from '../../../define.js';
+import { createCleanRemoteFilesJob } from '@/queue/index.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -16,13 +15,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private queueService: QueueService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			this.queueService.createCleanRemoteFilesJob();
-		});
-	}
-}
+export default define(meta, paramDef, async (ps, me) => {
+	createCleanRemoteFilesJob();
+});

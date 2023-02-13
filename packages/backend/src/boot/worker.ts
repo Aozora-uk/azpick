@@ -1,18 +1,17 @@
 import cluster from 'node:cluster';
-import { envOption } from '@/env.js';
-import { jobQueue, server } from './common.js';
+import { initDb } from '../db/postgre.js';
 
 /**
  * Init worker process
  */
 export async function workerMain() {
-	if (envOption.onlyServer) {
-		await server();
-	} else if (envOption.onlyQueue) {
-		await jobQueue();
-	} else {
-		await jobQueue();
-	}
+	await initDb();
+
+	// start server
+	await import('../server/index.js').then(x => x.default());
+
+	// start job queue
+	import('../queue/index.js').then(x => x.default());
 
 	if (cluster.isWorker) {
 		// Send a 'ready' message to parent process

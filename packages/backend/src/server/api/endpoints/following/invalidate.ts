@@ -1,12 +1,9 @@
 import ms from 'ms';
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { UsersRepository, FollowingsRepository } from '@/models/index.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { UserFollowingService } from '@/core/UserFollowingService.js';
-import { DI } from '@/di-symbols.js';
+import deleteFollowing from '@/services/following/delete.js';
+import define from '../../define.js';
 import { ApiError } from '../../error.js';
-import { GetterService } from '@/server/api/GetterService.js';
+import { getUser } from '../../common/getters.js';
+import { Followings, Users } from '@/models/index.js';
 
 export const meta = {
 	tags: ['following', 'users'],
@@ -56,46 +53,31 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const followee = user;
 
-		@Inject(DI.followingsRepository)
-		private followingsRepository: FollowingsRepository,
-
-		private userEntityService: UserEntityService,
-		private getterService: GetterService,
-		private userFollowingService: UserFollowingService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const followee = me;
-
-			// Check if the follower is yourself
-			if (me.id === ps.userId) {
-				throw new ApiError(meta.errors.followerIsYourself);
-			}
-
-			// Get follower
-			const follower = await this.getterService.getUser(ps.userId).catch(err => {
-				if (err.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
-				throw err;
-			});
-
-			// Check not following
-			const exist = await this.followingsRepository.findOneBy({
-				followerId: follower.id,
-				followeeId: followee.id,
-			});
-
-			if (exist == null) {
-				throw new ApiError(meta.errors.notFollowing);
-			}
-
-			await this.userFollowingService.unfollow(follower, followee);
-
-			return await this.userEntityService.pack(followee.id, me);
-		});
+	// Check if the follower is yourself
+	if (user.id === ps.userId) {
+		throw new ApiError(meta.errors.followerIsYourself);
 	}
-}
+
+	// Get follower
+	const follower = await getUser(ps.userId).catch(e => {
+		if (e.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
+		throw e;
+	});
+
+	// Check not following
+	const exist = await Followings.findOneBy({
+		followerId: follower.id,
+		followeeId: followee.id,
+	});
+
+	if (exist == null) {
+		throw new ApiError(meta.errors.notFollowing);
+	}
+
+	await deleteFollowing(follower, followee);
+
+	return await Users.pack(followee.id, user);
+});

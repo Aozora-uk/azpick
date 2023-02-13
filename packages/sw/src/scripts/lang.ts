@@ -1,6 +1,8 @@
 /*
  * Language manager for SW
  */
+declare var self: ServiceWorkerGlobalScope;
+
 import { get, set } from 'idb-keyval';
 import { I18n } from '@/scripts/i18n';
 

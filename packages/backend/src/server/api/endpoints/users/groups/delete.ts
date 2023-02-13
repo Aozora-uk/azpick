@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { UserGroupsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { DI } from '@/di-symbols.js';
+import { UserGroups } from '@/models/index.js';
+import define from '../../../define.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -31,23 +29,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.userGroupsRepository)
-		private userGroupsRepository: UserGroupsRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const userGroup = await this.userGroupsRepository.findOneBy({
-				id: ps.groupId,
-				userId: me.id,
-			});
+export default define(meta, paramDef, async (ps, user) => {
+	const userGroup = await UserGroups.findOneBy({
+		id: ps.groupId,
+		userId: user.id,
+	});
 
-			if (userGroup == null) {
-				throw new ApiError(meta.errors.noSuchGroup);
-			}
-
-			await this.userGroupsRepository.delete(userGroup.id);
-		});
+	if (userGroup == null) {
+		throw new ApiError(meta.errors.noSuchGroup);
 	}
-}
+
+	await UserGroups.delete(userGroup.id);
+});

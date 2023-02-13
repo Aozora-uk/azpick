@@ -1,7 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { ModerationLogService } from '@/core/ModerationLogService.js';
-import { QueueService } from '@/core/QueueService.js';
+import define from '../../../define.js';
+import { destroy } from '@/queue/index.js';
+import { insertModerationLog } from '@/services/insert-moderation-log.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -17,16 +16,8 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private moderationLogService: ModerationLogService,
-		private queueService: QueueService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			this.queueService.destroy();
+export default define(meta, paramDef, async (ps, me) => {
+	destroy();
 
-			this.moderationLogService.insertModerationLog(me, 'clearQueue');
-		});
-	}
-}
+	insertModerationLog(me, 'clearQueue');
+});

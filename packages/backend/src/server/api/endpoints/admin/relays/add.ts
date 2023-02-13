@@ -1,7 +1,6 @@
 import { URL } from 'node:url';
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { RelayService } from '@/core/RelayService.js';
+import define from '../../../define.js';
+import { addRelay } from '@/services/relay.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -55,19 +54,12 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private relayService: RelayService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			try {
-				if (new URL(ps.inbox).protocol !== 'https:') throw 'https only';
-			} catch {
-				throw new ApiError(meta.errors.invalidUrl);
-			}
-
-			return await this.relayService.addRelay(ps.inbox);
-		});
+export default define(meta, paramDef, async (ps, user) => {
+	try {
+		if (new URL(ps.inbox).protocol !== 'https:') throw 'https only';
+	} catch {
+		throw new ApiError(meta.errors.invalidUrl);
 	}
-}
+
+	return await addRelay(ps.inbox);
+});

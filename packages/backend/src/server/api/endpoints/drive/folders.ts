@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFoldersRepository } from '@/models/index.js';
-import { QueryService } from '@/core/QueryService.js';
-import { DriveFolderEntityService } from '@/core/entities/DriveFolderEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { DriveFolders } from '@/models/index.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
 
 export const meta = {
 	tags: ['drive'],
@@ -35,28 +32,17 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.driveFoldersRepository)
-		private driveFoldersRepository: DriveFoldersRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const query = makePaginationQuery(DriveFolders.createQueryBuilder('folder'), ps.sinceId, ps.untilId)
+		.andWhere('folder.userId = :userId', { userId: user.id });
 
-		private driveFolderEntityService: DriveFolderEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService.makePaginationQuery(this.driveFoldersRepository.createQueryBuilder('folder'), ps.sinceId, ps.untilId)
-				.andWhere('folder.userId = :userId', { userId: me.id });
-
-			if (ps.folderId) {
-				query.andWhere('folder.parentId = :parentId', { parentId: ps.folderId });
-			} else {
-				query.andWhere('folder.parentId IS NULL');
-			}
-
-			const folders = await query.take(ps.limit).getMany();
-
-			return await Promise.all(folders.map(folder => this.driveFolderEntityService.pack(folder)));
-		});
+	if (ps.folderId) {
+		query.andWhere('folder.parentId = :parentId', { parentId: ps.folderId });
+	} else {
+		query.andWhere('folder.parentId IS NULL');
 	}
-}
+
+	const folders = await query.take(ps.limit).getMany();
+
+	return await Promise.all(folders.map(folder => DriveFolders.pack(folder)));
+});

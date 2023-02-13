@@ -1,9 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ChannelsRepository } from '@/models/index.js';
-import { QueryService } from '@/core/QueryService.js';
-import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../define.js';
+import { Channels } from '@/models/index.js';
+import { makePaginationQuery } from '../../common/make-pagination-query.js';
 
 export const meta = {
 	tags: ['channels', 'account'],
@@ -34,24 +31,13 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.channelsRepository)
-		private channelsRepository: ChannelsRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const query = makePaginationQuery(Channels.createQueryBuilder(), ps.sinceId, ps.untilId)
+		.andWhere({ userId: me.id });
 
-		private channelEntityService: ChannelEntityService,
-		private queryService: QueryService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService.makePaginationQuery(this.channelsRepository.createQueryBuilder(), ps.sinceId, ps.untilId)
-				.andWhere({ userId: me.id });
+	const channels = await query
+		.take(ps.limit)
+		.getMany();
 
-			const channels = await query
-				.take(ps.limit)
-				.getMany();
-
-			return await Promise.all(channels.map(x => this.channelEntityService.pack(x, me)));
-		});
-	}
-}
+	return await Promise.all(channels.map(x => Channels.pack(x, me)));
+});

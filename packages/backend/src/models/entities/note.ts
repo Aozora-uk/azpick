@@ -1,9 +1,9 @@
 import { Entity, Index, JoinColumn, Column, PrimaryColumn, ManyToOne } from 'typeorm';
+import { User } from './user.js';
+import { DriveFile } from './drive-file.js';
 import { id } from '../id.js';
 import { noteVisibilities } from '../../types.js';
-import { User } from './User.js';
-import { Channel } from './Channel.js';
-import type { DriveFile } from './DriveFile.js';
+import { Channel } from './channel.js';
 
 @Entity()
 @Index('IDX_NOTE_TAGS', { synchronize: false })
@@ -53,7 +53,6 @@ export class Note {
 	})
 	public threadId: string | null;
 
-	// TODO: varcharにしたい
 	@Column('text', {
 		nullable: true,
 	})

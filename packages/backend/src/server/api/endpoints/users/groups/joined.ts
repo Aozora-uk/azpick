@@ -1,9 +1,6 @@
 import { Not, In } from 'typeorm';
-import { Inject, Injectable } from '@nestjs/common';
-import type { UserGroupsRepository, UserGroupJoiningsRepository } from '@/models/index.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import { UserGroupEntityService } from '@/core/entities/UserGroupEntityService.js';
-import { DI } from '@/di-symbols.js';
+import { UserGroups, UserGroupJoinings } from '@/models/index.js';
+import define from '../../../define.js';
 
 export const meta = {
 	tags: ['groups', 'account'],
@@ -32,30 +29,17 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.userGroupsRepository)
-		private userGroupsRepository: UserGroupsRepository,
+export default define(meta, paramDef, async (ps, me) => {
+	const ownedGroups = await UserGroups.findBy({
+		userId: me.id,
+	});
 
-		@Inject(DI.userGroupJoiningsRepository)
-		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
+	const joinings = await UserGroupJoinings.findBy({
+		userId: me.id,
+		...(ownedGroups.length > 0 ? {
+			userGroupId: Not(In(ownedGroups.map(x => x.id))),
+		} : {}),
+	});
 
-		private userGroupEntityService: UserGroupEntityService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const ownedGroups = await this.userGroupsRepository.findBy({
-				userId: me.id,
-			});
-
-			const joinings = await this.userGroupJoiningsRepository.findBy({
-				userId: me.id,
-				...(ownedGroups.length > 0 ? {
-					userGroupId: Not(In(ownedGroups.map(x => x.id))),
-				} : {}),
-			});
-
-			return await Promise.all(joinings.map(x => this.userGroupEntityService.pack(x.userGroupId)));
-		});
-	}
-}
+	return await Promise.all(joinings.map(x => UserGroups.pack(x.userGroupId)));
+});

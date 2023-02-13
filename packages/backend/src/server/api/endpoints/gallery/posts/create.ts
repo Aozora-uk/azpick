@@ -1,13 +1,10 @@
 import ms from 'ms';
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, GalleryPostsRepository } from '@/models/index.js';
-import { GalleryPost } from '@/models/entities/GalleryPost.js';
-import type { DriveFile } from '@/models/entities/DriveFile.js';
-import { IdService } from '@/core/IdService.js';
-import { GalleryPostEntityService } from '@/core/entities/GalleryPostEntityService.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
+import { DriveFiles, GalleryPosts } from '@/models/index.js';
+import { genId } from '../../../../../misc/gen-id.js';
+import { GalleryPost } from '@/models/entities/gallery-post.js';
 import { ApiError } from '../../../error.js';
+import { DriveFile } from '@/models/entities/drive-file.js';
 
 export const meta = {
 	tags: ['gallery'],
@@ -18,7 +15,7 @@ export const meta = {
 
 	limit: {
 		duration: ms('1hour'),
-		max: 20,
+		max: 300,
 	},
 
 	res: {
@@ -46,42 +43,28 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.galleryPostsRepository)
-		private galleryPostsRepository: GalleryPostsRepository,
+export default define(meta, paramDef, async (ps, user) => {
+	const files = (await Promise.all(ps.fileIds.map(fileId =>
+		DriveFiles.findOneBy({
+			id: fileId,
+			userId: user.id,
+		})
+	))).filter((file): file is DriveFile => file != null);
 
-		@Inject(DI.driveFilesRepository)
-		private driveFilesRepository: DriveFilesRepository,
-
-		private galleryPostEntityService: GalleryPostEntityService,
-		private idService: IdService,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const files = (await Promise.all(ps.fileIds.map(fileId =>
-				this.driveFilesRepository.findOneBy({
-					id: fileId,
-					userId: me.id,
-				}),
-			))).filter((file): file is DriveFile => file != null);
-
-			if (files.length === 0) {
-				throw new Error();
-			}
-
-			const post = await this.galleryPostsRepository.insert(new GalleryPost({
-				id: this.idService.genId(),
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				title: ps.title,
-				description: ps.description,
-				userId: me.id,
-				isSensitive: ps.isSensitive,
-				fileIds: files.map(file => file.id),
-			})).then(x => this.galleryPostsRepository.findOneByOrFail(x.identifiers[0]));
-
-			return await this.galleryPostEntityService.pack(post, me);
-		});
+	if (files.length === 0) {
+		throw new Error();
 	}
-}
+
+	const post = await GalleryPosts.insert(new GalleryPost({
+		id: genId(),
+		createdAt: new Date(),
+		updatedAt: new Date(),
+		title: ps.title,
+		description: ps.description,
+		userId: user.id,
+		isSensitive: ps.isSensitive,
+		fileIds: files.map(file => file.id),
+	})).then(x => GalleryPosts.findOneByOrFail(x.identifiers[0]));
+
+	return await GalleryPosts.pack(post, user);
+});

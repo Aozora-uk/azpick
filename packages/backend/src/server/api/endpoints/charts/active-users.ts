@@ -1,13 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { getJsonSchema } from '@/core/chart/core.js';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import ActiveUsersChart from '@/core/chart/charts/active-users.js';
-import { schema } from '@/core/chart/charts/entities/active-users.js';
+import { getJsonSchema } from '@/services/chart/core.js';
+import { activeUsersChart } from '@/services/chart/index.js';
+import define from '../../define.js';
 
 export const meta = {
 	tags: ['charts', 'users'],
 
-	res: getJsonSchema(schema),
+	res: getJsonSchema(activeUsersChart.schema),
 
 	allowGet: true,
 	cacheSec: 60 * 60,
@@ -24,13 +22,6 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		private activeUsersChart: ActiveUsersChart,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			return await this.activeUsersChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null);
-		});
-	}
-}
+export default define(meta, paramDef, async (ps) => {
+	return await activeUsersChart.getChart(ps.span, ps.limit, ps.offset ? new Date(ps.offset) : null);
+});

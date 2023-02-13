@@ -1,7 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { AnnouncementsRepository } from '@/models/index.js';
-import { DI } from '@/di-symbols.js';
+import define from '../../../define.js';
+import { Announcements } from '@/models/index.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -31,23 +29,15 @@ export const paramDef = {
 } as const;
 
 // eslint-disable-next-line import/no-default-export
-@Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
-	constructor(
-		@Inject(DI.announcementsRepository)
-		private announcementsRepository: AnnouncementsRepository,
-	) {
-		super(meta, paramDef, async (ps, me) => {
-			const announcement = await this.announcementsRepository.findOneBy({ id: ps.id });
+export default define(meta, paramDef, async (ps, me) => {
+	const announcement = await Announcements.findOneBy({ id: ps.id });
 
-			if (announcement == null) throw new ApiError(meta.errors.noSuchAnnouncement);
+	if (announcement == null) throw new ApiError(meta.errors.noSuchAnnouncement);
 
-			await this.announcementsRepository.update(announcement.id, {
-				updatedAt: new Date(),
-				title: ps.title,
-				text: ps.text,
-				imageUrl: ps.imageUrl,
-			});
-		});
-	}
-}
+	await Announcements.update(announcement.id, {
+		updatedAt: new Date(),
+		title: ps.title,
+		text: ps.text,
+		imageUrl: ps.imageUrl,
+	});
+});

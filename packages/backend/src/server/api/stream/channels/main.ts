@@ -1,25 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository } from '@/models/index.js';
-import { isInstanceMuted, isUserFromMutedInstance } from '@/misc/is-instance-muted.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { bindThis } from '@/decorators.js';
 import Channel from '../channel.js';
+import { Notes } from '@/models/index.js';
+import { isInstanceMuted, isUserFromMutedInstance } from '@/misc/is-instance-muted.js';
 
-class MainChannel extends Channel {
+export default class extends Channel {
 	public readonly chName = 'main';
 	public static shouldShare = true;
 	public static requireCredential = true;
 
-	constructor(
-		private noteEntityService: NoteEntityService,
-
-		id: string,
-		connection: Channel['connection'],
-	) {
-		super(id, connection);
-	}
-
-	@bindThis
 	public async init(params: any) {
 		// Subscribe main stream channel
 		this.subscriber.on(`mainStream:${this.user!.id}`, async data => {
@@ -30,7 +17,7 @@ class MainChannel extends Channel {
 					if (data.body.userId && this.muting.has(data.body.userId)) return;
 
 					if (data.body.note && data.body.note.isHidden) {
-						const note = await this.noteEntityService.pack(data.body.note.id, this.user, {
+						const note = await Notes.pack(data.body.note.id, this.user, {
 							detail: true,
 						});
 						this.connection.cacheNote(note);
@@ -43,7 +30,7 @@ class MainChannel extends Channel {
 
 					if (this.muting.has(data.body.userId)) return;
 					if (data.body.isHidden) {
-						const note = await this.noteEntityService.pack(data.body.id, this.user, {
+						const note = await Notes.pack(data.body.id, this.user, {
 							detail: true,
 						});
 						this.connection.cacheNote(note);
@@ -55,25 +42,5 @@ class MainChannel extends Channel {
 
 			this.send(data.type, data.body);
 		});
-	}
-}
-
-@Injectable()
-export class MainChannelService {
-	public readonly shouldShare = MainChannel.shouldShare;
-	public readonly requireCredential = MainChannel.requireCredential;
-
-	constructor(
-		private noteEntityService: NoteEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): MainChannel {
-		return new MainChannel(
-			this.noteEntityService,
-			id,
-			connection,
-		);
 	}
 }
