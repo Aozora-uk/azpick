@@ -21,7 +21,7 @@ const modal = ref<InstanceType<typeof MkModal>>();
 
 const whatIsNew = () => {
 	modal.value.close();
-	window.open(`https://git.aozora.uk/aozora-uk/azpick/tree/${version}`, '_blank');
+	window.open(`https://github.com/aozora-uk/azpick/releases/tag/${version}`, '_blank');
 };
 </script>
 
