@@ -1,10 +1,10 @@
 {
-	"name": "azpick",
-	"version": "12.119.2-cp-3.0.0_ap-2.1.4f3",
+	"name": "aozorapick",
+	"version": "12.119.2-cp-3.0.0_ap-2.1.4f2",
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/aozora-uk/azpick"
+		"url": "https://git.aozora.uk/aozora-uk/azpick"
 	},
 	"private": true,
 	"scripts": {

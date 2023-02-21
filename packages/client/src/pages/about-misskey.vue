@@ -31,10 +31,10 @@
 								Status Page
 								<template #suffix>github.io</template>
 							</FormLink>
-							<FormLink to="https://github.com/aozora-uk/azpick" external>
+							<FormLink to="https://git.aozora.uk/aozora-uk/azpick" external>
 								<template #icon><i class="fab fa-git-alt"></i></template>
 								{{ i18n.ts._aboutMisskey.source }}
-								<template #suffix>Github</template>
+								<template #suffix>Aozoragit</template>
 							</FormLink>
 						</div>
 				</FormSection>

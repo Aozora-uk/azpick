@@ -15,7 +15,7 @@ const props = defineProps<{
 const query = ref(props.q);
 
 const search = () => {
-	window.open(`https://green.search.goo.ne.jp/search?MT=${query.value}`, '_blank');
+	window.open(`https://you.com/search?q=${query.value}`, '_blank');
 };
 </script>
 
