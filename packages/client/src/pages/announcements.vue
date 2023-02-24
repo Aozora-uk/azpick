@@ -1,53 +1,60 @@
 <template>
-<MkStickyContainer>
-	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
-	<MkSpacer :content-max="800">
-		<MkPagination v-slot="{items}" :pagination="pagination" class="ruryvtyk _content">
-			<section v-for="(announcement, i) in items" :key="announcement.id" class="_card announcement">
-				<div class="_title"><span v-if="$i && !announcement.isRead">🆕 </span>{{ announcement.title }}</div>
-				<div class="_content">
-					<Mfm :text="announcement.text"/>
-					<img v-if="announcement.imageUrl" :src="announcement.imageUrl"/>
-				</div>
-				<div class="time"><MkTime :time="announcement.createdAt" mode="detail"/></div>
-				<div v-if="$i && !announcement.isRead" class="_footer">
-					<MkButton primary @click="read(items, announcement, i)"><i class="fas fa-check"></i> {{ $ts.gotIt }}</MkButton>
-				</div>
-			</section>
-		</MkPagination>
-	</MkSpacer>
-</MkStickyContainer>
+<MkSpacer :content-max="800">
+	<MkPagination v-slot="{items}" :pagination="pagination" class="ruryvtyk _content">
+		<section v-for="(announcement, i) in items" :key="announcement.id" class="_card announcement">
+			<div class="_title"><span v-if="$i && !announcement.isRead">🆕 </span>{{ announcement.title }}</div>
+			<div class="_content">
+				<Mfm :text="announcement.text"/>
+				<img v-if="announcement.imageUrl" :src="announcement.imageUrl"/>
+			</div>
+			<div class="footer">
+				<div><i class="far fa-clock"></i> {{ $ts.createdAt }}: <MkTime :time="announcement.createdAt" mode="detail"/></div>
+			</div>
+			<div v-if="$i && !announcement.isRead" class="_footer">
+				<MkButton primary @click="read(items, announcement, i)"><i class="fas fa-check"></i> {{ $ts.gotIt }}</MkButton>
+			</div>
+		</section>
+	</MkPagination>
+</MkSpacer>
 </template>
 
-<script lang="ts" setup>
-import { } from 'vue';
-import MkPagination from '@/components/MkPagination.vue';
-import MkButton from '@/components/MkButton.vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import MkPagination from '@/components/ui/pagination.vue';
+import MkButton from '@/components/ui/button.vue';
 import * as os from '@/os';
-import { i18n } from '@/i18n';
-import { definePageMetadata } from '@/scripts/page-metadata';
+import * as symbols from '@/symbols';
 
-const pagination = {
-	endpoint: 'announcements' as const,
-	limit: 10,
-};
+export default defineComponent({
+	components: {
+		MkPagination,
+		MkButton
+	},
 
-// TODO: これは実質的に親コンポーネントから子コンポーネントのプロパティを変更してるのでなんとかしたい
-function read(items, announcement, i) {
-	items[i] = {
-		...announcement,
-		isRead: true,
-	};
-	os.api('i/read-announcement', { announcementId: announcement.id });
-}
+	data() {
+		return {
+			[symbols.PAGE_INFO]: {
+				title: this.$ts.announcements,
+				icon: 'fas fa-broadcast-tower',
+				bg: 'var(--bg)',
+			},
+			pagination: {
+				endpoint: 'announcements' as const,
+				limit: 10,
+			},
+		};
+	},
 
-const headerActions = $computed(() => []);
-
-const headerTabs = $computed(() => []);
-
-definePageMetadata({
-	title: i18n.ts.announcements,
-	icon: 'fas fa-broadcast-tower',
+	methods: {
+		// TODO: これは実質的に親コンポーネントから子コンポーネントのプロパティを変更してるのでなんとかしたい
+		read(items, announcement, i) {
+			items[i] = {
+				...announcement,
+				isRead: true,
+			};
+			os.api('i/read-announcement', { announcementId: announcement.id });
+		},
+	}
 });
 </script>
 
@@ -64,6 +71,11 @@ definePageMetadata({
 				max-height: 300px;
 				max-width: 100%;
 			}
+		}
+		> .footer {
+			margin: var(--margin) 0 var(--margin) 0;
+			font-size: 85%;
+			opacity: 0.75;
 		}
 	}
 }
