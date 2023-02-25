@@ -98,13 +98,37 @@
 				</FormSection>
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.contributors }}</template>
-					<div class="_formLinks">
-						<FormLink to="https://github.com/noridev" external>@noridev (CherryPick)</FormLink>
-						<FormLink to="https://github.com/r-ca" external>@r-ca (rca-fedi/Cherrypick)</FormLink>
-						<FormLink to="https://github.com/morotesovtannu" external>@morotesovtannu (AZPick)</FormLink>
-						<FormLink to="https://github.com/syuilo" external>@syuilo (Misskey)</FormLink>
+					<div :class="$style.contributors">
+						<FormLink to="https://github.com/syuilo" external>@syuilo(Misskey)</FormLink>
+						<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
+						<FormLink to="https://github.com/tamaina" external>@tamaina(Misskey)</FormLink>
+							<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
+						<FormLink to="https://github.com/mei23" external>@mei23(Misskey&v12-lts)</FormLink>
+							<span :class="$style.contributorUsername">@syuilo</span>
+						<FormLink to="https://github.com/r-ca" external>@r-ca(rca-fedi/cp&yoiyami)</FormLink>
+						</a>
+						<a href="https://github.com/tamaina" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/7973572?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@tamaina</span>
+						</a>
+						<a href="https://github.com/mei23" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/30769358?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@mei23(Misskey&v12-lts)</span>
+						</a>
+						<a href="https://github.com/r-ca" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/66072112?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@r-ca(rca-fedi/cp&yoiyami)</span>
+						</a>
+						<a href="https://github.com/noridev" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/11006910?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@noridev(Cherrypick)</span>
+						</a>
+						<a href="https://github.com/morotesovtannu" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/68218785?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@morotesovtannu(AZPick)</span>
+						</a>
 					</div>
-					<template #caption><MkLink url="https://github.com/misskey-dev/misskey/graphs/contributors">{{ i18n.ts._aboutMisskey.allContributors }}</MkLink></template>
+					<template #caption><MkLink url="https://github.com/aozora-uk/azpick/graphs/contributors">{{ i18n.ts._aboutMisskey.allContributors }}</MkLink></template>
 				</FormSection>
 				<FormSection>
 					<template #label><Mfm text="$[jelly ❤]"/> {{ i18n.ts._aboutMisskey.patrons }}</template>
@@ -326,5 +350,35 @@ definePageMetadata({
 			}
 		}
 	}
+}
+</style>
+
+<style lang="scss" module>
+.contributors {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-gap: 12px;
+}
+.contributor {
+	display: flex;
+	align-items: center;
+	padding: 12px;
+	background: var(--buttonBg);
+	border-radius: 6px;
+	&:hover {
+		text-decoration: none;
+		background: var(--buttonHoverBg);
+	}
+	&.active {
+		color: var(--accent);
+		background: var(--buttonHoverBg);
+	}
+}
+.contributorAvatar {
+	width: 30px;
+	border-radius: 100%;
+}
+.contributorUsername {
+	margin-left: 12px;
 }
 </style>

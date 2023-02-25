@@ -9,12 +9,12 @@
 
 この文書は、AZPickとCherryPickの変更事項のみを含みます。 Misskey全体の変更を確認するには、[CHANGELOG.md](CHANGELOG.md)文書を参照してください。
 また、Cherrypickの変更事項文はNAVER Papagoを使い翻訳したものです。間違いがある可能性もありますがご了承くださいませ。
-## ## 12.119.4-cp-3.0.0_ap-2.1.5f1 (2023/02/21)
+## ## 12.119.4-cp-3.0.0_ap-2.1.5f1 (2023/02/26)
 - mei23/misskey-v12のv12-ltsに追従 @morotesovtannu
 - 脆弱性修正 @mei23 @syuilo
-## ## 12.119.2-cp-3.0.0_ap-2.1.5f1 (2023/02/21)
+## ## 12.119.2-cp-3.0.0_ap-2.1.5f1 (2023/02/26)
 - InstanceTicker(sudomkdiruk) fix @L-y-a @morotesovtannu
-## ## 12.119.2-cp-3.0.0_ap-2.1.5 (2023/02/21)
+## ## 12.119.2-cp-3.0.0_ap-2.1.5 (2023/02/26)
 - InstanceTickerをsudo.mkdir.uk仕様に @L-y-a
 ## ## 12.119.2-cp-3.0.0_ap-2.1.4f3 (2023/02/21)
 - v13mfm-fix @r-ca
