@@ -9,11 +9,13 @@
 
 この文書は、AZPickとCherryPickの変更事項のみを含みます。 Misskey全体の変更を確認するには、[CHANGELOG.md](CHANGELOG.md)文書を参照してください。
 また、Cherrypickの変更事項文はNAVER Papagoを使い翻訳したものです。間違いがある可能性もありますがご了承くださいませ。
+## ## 12.119.2-cp-3.0.0_ap-2.1.5f1 (2023/02/21)
+- InstanceTicker(sudomkdiruk) fix @L-y-a @morotesovtannu
 ## ## 12.119.2-cp-3.0.0_ap-2.1.5 (2023/02/21)
 - InstanceTickerをsudo.mkdir.uk仕様に @L-y-a
 ## ## 12.119.2-cp-3.0.0_ap-2.1.4f3 (2023/02/21)
-- v13mfm-fix
-- Aozoragitサービス終了のためリピお地鶏をGithubに変更
+- v13mfm-fix @r-ca
+- Aozoragitサービス終了のためリポジトリをGithubに変更 @morotesovtannu
 ## ## 12.119.2-cp-3.0.0_ap-2.1.4 (2023/02/14)
 - yoiyamiからMFMv13を拝借 ( https://github.com/rca-fedi/yoiyami )
 ## ## 12.119.2-cp-3.0.0_ap-2.1.3 (2023/01/23)
