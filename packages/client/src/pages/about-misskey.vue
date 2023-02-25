@@ -99,13 +99,9 @@
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.contributors }}</template>
 					<div :class="$style.contributors">
-						<FormLink to="https://github.com/syuilo" external>@syuilo(Misskey)</FormLink>
 						<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
-						<FormLink to="https://github.com/tamaina" external>@tamaina(Misskey)</FormLink>
 							<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
-						<FormLink to="https://github.com/mei23" external>@mei23(Misskey&v12-lts)</FormLink>
-							<span :class="$style.contributorUsername">@syuilo</span>
-						<FormLink to="https://github.com/r-ca" external>@r-ca(rca-fedi/cp&yoiyami)</FormLink>
+							<span :class="$style.contributorUsername">@tamaina</span>
 						</a>
 						<a href="https://github.com/tamaina" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/7973572?v=4" :class="$style.contributorAvatar">
