@@ -1,7 +1,7 @@
 <template>
-<div :class="$style.root" :style="bg">
-        <img v-if="faviconUrl" :class="$style.icon" :src="faviconUrl"/>
-        <div :class="$style.name">{{ instance.name }}</div>
+<div class="hpaizdrt" :style="bg">
+	<img v-if="instance.faviconUrl" class="icon" :src="instance.faviconUrl"/>
+	<span class="name">{{ instance.name }}</span>
 </div>
 </template>
 
