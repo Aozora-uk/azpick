@@ -16,7 +16,7 @@
 				</div>
 				<div class="_formBlock" style="text-align: center;">
 					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAZPick">I <Mfm text="$[jelly ❤]"/> #AZPick</MkButton>
-					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozorasky">I <Mfm text="$[jelly :ablobcatheart:]"/> #Aozorasky</MkButton>
+					<MkButton style="margin: 8px;" primary rounded inline @click="iLoveAozorasky">I <Mfm text="$[jelly 🥰]"/> #Aozorasky</MkButton>
 				</div>
 				<FormSection>
 					<template #label>Aozorasky</template>
@@ -101,11 +101,11 @@
 					<div :class="$style.contributors">
 						<a href="https://github.com/syuilo" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/4439005?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@tamaina</span>
+							<span :class="$style.contributorUsername">@syuilo(Misskey)</span>
 						</a>
 						<a href="https://github.com/tamaina" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/7973572?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@tamaina</span>
+							<span :class="$style.contributorUsername">@tamaina(Misskey)</span>
 						</a>
 						<a href="https://github.com/mei23" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/30769358?v=4" :class="$style.contributorAvatar">
@@ -272,7 +272,7 @@ function iLoveAZPick() {
 }
 function iLoveAozorasky() {
 	os.post({
-		initialText: 'I $[jelly :ablobcatheart:] #あおぞらすきー',
+		initialText: 'I $[jelly 🥰] #Aozorasky',
 		instant: true,
 	});
 }
