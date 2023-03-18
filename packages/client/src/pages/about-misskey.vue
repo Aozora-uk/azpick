@@ -150,6 +150,28 @@ import { defaultStore } from '@/store';
 import * as os from '@/os';
 import { definePageMetadata } from '@/scripts/page-metadata';
 
+const patronsWithIcon = [{
+	name: 'カイヤン',
+	icon: 'https://misskey-hub.net/patrons/a2820716883e408cb87773e377ce7c8d.jpg',
+}, {
+	name: 'だれかさん',
+	icon: 'https://misskey-hub.net/patrons/f7409b5e5a88477a9b9d740c408de125.jpg',
+}, {
+	name: 'narazaka',
+	icon: 'https://misskey-hub.net/patrons/e3affff31ffb4877b1196c7360abc3e5.jpg',
+}, {
+	name: 'ひとぅ',
+	icon: 'https://misskey-hub.net/patrons/8cc0d0a0a6d84c88bca1aedabf6ed5ab.jpg',
+}, {
+	name: 'ぱーこ',
+	icon: 'https://misskey-hub.net/patrons/79c6602ffade489e8df2fcf2c2bc5d9d.jpg',
+}, {
+	name: 'わっほー☆',
+	icon: 'https://misskey-hub.net/patrons/d31d5d13924443a082f3da7966318a0a.jpg',
+}, {
+	name: 'mollinaca',
+	icon: 'https://misskey-hub.net/patrons/ceb36b8f66e549bdadb3b90d5da62314.jpg',
+}];
 const patrons = [
 	'まっちゃとーにゅ',
 	'mametsuko',
@@ -229,7 +251,12 @@ const patrons = [
 	'蝉暮せせせ',
 	'ThatOneCalculator',
 	'pixeldesu',
+	'あめ玉',
+	'氷月氷華里',
+	'Ebise Lutica',
+	'巣黒るい@リスケモ男の娘VTuber!',
 ];
+
 
 let isKokonect = false;
 
@@ -325,16 +352,21 @@ definePageMetadata({
 		> .misskey {
 			margin: 0.75em auto 0 auto;
 			width: max-content;
+			position: relative;
+			z-index: 1;
 		}
 
 		> .version {
 			margin: 0 auto;
 			width: max-content;
 			opacity: 0.5;
+			position: relative;
+			z-index: 1;
 		}
 
 		> .emoji {
 			position: absolute;
+			z-index: 1;
 			top: 0;
 			left: 0;
 			visibility: hidden;
