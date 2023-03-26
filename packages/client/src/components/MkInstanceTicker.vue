@@ -1,7 +1,7 @@
 <template>
 <div :class="$style.root" :style="bg">
-        <img v-if="faviconUrl" :class="icon" :src="faviconUrl"/>
-        <div :class="name">{{ instance.name }}</div>
+        <img v-if="faviconUrl" :class="$style.icon" :src="faviconUrl"/>
+        <div :class="$style.name">{{ instance.name }}</div>
 </div>
 </template>
 
@@ -20,7 +20,7 @@ const props = defineProps<{
 
 // if no instance data is given, this is for the local instance
 const instance = props.instance ?? {
-	faviconUrl: instance.iconUrl || instance.faviconUrl || '/favicon.ico',
+	faviconUrl: Instance.iconUrl || (Instance as { faviconUrl?: string | null }).faviconUrl || '/favicon.ico',
 	name: instanceName,
 	themeColor: (document.querySelector('meta[name="theme-color-orig"]') as HTMLMetaElement)?.content
 };
