@@ -1,6 +1,6 @@
 <template>
 <div :class="$style.root" :style="bg">
-        <img v-if="faviconUrl" :class="$style.icon" :src="faviconUrl"/>
+        <img v-if="instance.faviconUrl" :class="icon" :src="instance.faviconUrl"/>
         <div :class="$style.name">{{ instance.name }}</div>
 </div>
 </template>
