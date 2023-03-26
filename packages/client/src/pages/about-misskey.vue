@@ -128,8 +128,16 @@
 				</FormSection>
 				<FormSection>
 					<template #label><Mfm text="$[jelly ❤]"/> {{ i18n.ts._aboutMisskey.patrons }}</template>
-					<div v-for="patron in patrons" :key="patron">{{ patron }}</div>
-					<template #caption>{{ i18n.ts._aboutMisskey.morePatrons }}</template>
+					<div :class="$style.patronsWithIcon">
+						<div v-for="patron in patronsWithIcon" :class="$style.patronWithIcon">
+							<img :src="patron.icon" :class="$style.patronIcon">
+							<span :class="$style.patronName">{{ patron.name }}</span>
+						</div>
+					</div>
+					<div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); grid-gap: 12px;">
+						<div v-for="patron in patrons" :key="patron">{{ patron }}</div>
+					</div>
+					<p>{{ i18n.ts._aboutMisskey.morePatrons }}</p>
 				</FormSection>
 			</div>
 		</MkSpacer>
@@ -407,6 +415,25 @@ definePageMetadata({
 	border-radius: 100%;
 }
 .contributorUsername {
+	margin-left: 12px;
+}
+patronsWithIcon {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-gap: 12px;
+}
+.patronWithIcon {
+	display: flex;
+	align-items: center;
+	padding: 12px;
+	background: var(--buttonBg);
+	border-radius: 6px;
+}
+.patronIcon {
+	width: 24px;
+	border-radius: 100%;
+}
+.patronName {
 	margin-left: 12px;
 }
 </style>
