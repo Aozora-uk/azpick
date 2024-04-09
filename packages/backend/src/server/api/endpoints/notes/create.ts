@@ -83,6 +83,12 @@ export const meta = {
 			code: 'CANNOT_RENOTE_DUE_TO_VISIBILITY',
 			id: 'be9529e9-fe72-4de0-ae43-0b363c4938af',
 		},
+
+		contentRequired: {
+			message: 'Content required. You need to set text, fileIds, renoteId or poll.',
+			code: 'CONTENT_REQUIRED',
+			id: '6f57e42b-c348-439b-bc45-993995cc515a',
+		},
 	},
 } as const;
 
@@ -250,6 +256,10 @@ export default define(meta, paramDef, async (ps, user) => {
 		} else if (typeof ps.poll.expiredAfter === 'number') {
 			ps.poll.expiresAt = Date.now() + ps.poll.expiredAfter;
 		}
+	}
+
+	if (renote && !(ps.text || files.length || ps.poll) && (ps.cw || reply)) {
+		throw new ApiError(meta.errors.contentRequired);
 	}
 
 	let channel: Channel | null = null;
