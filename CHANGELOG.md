@@ -8,9 +8,21 @@
 You should also include the user name that made the change.
 -->
 
+## 12.119.2-fix.6.7 (2024/05/01)
+### Improvements
+- チャット受信時に画面を自動でスクロールしないように @atsu1125
+
+### Bugfixes
+- CWかリプライのみで引用できないように @atsu1125
+- メールアドレスの登録が必須な場合には更新時に空にしないように @kakkokari-gtyih @u1-liquid
+- Bull DashboardのパスにCache-Controlを追加 @mei23
+- Bull DashboardのパスにCSPを追加 @mei23
+- AP LD Signatureで検証されたActivityをcompactするように @zotanmew @naskya @atsu1125
+- AP Link等は添付ファイル扱いしないように @mei23
+
 ## 12.119.2-fix.6.6 (2024/03/30)
 ### Bugfixes
-- AP取得のチェックの修正
+- AP取得のチェックの修正 @mei23 @naskya @laozhoubuluo @zotanmew
 
 ## 12.119.2-fix.6.5 (2024/03/26)
 ### Improvements
