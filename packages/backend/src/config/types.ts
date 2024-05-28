@@ -68,6 +68,8 @@ export type Source = {
 
 	disableAntenna?: boolean;
 	disableSearch?: boolean;
+	chartCommitIntervalSecond?: number;
+	disableChartsForRemoteUser?: boolean;
 };
 
 /**
