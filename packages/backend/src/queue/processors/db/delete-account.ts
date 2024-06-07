@@ -42,11 +42,9 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 					id: following.followeeId,
 				});
 
-				if (followee == null) {
-					throw `Cant find followee ${following.followeeId}`;
+				if (followee != null) {
+					await deleteFollowing(follower, followee, true);
 				}
-
-				await deleteFollowing(follower, followee, true);
 			}
 
 			const requests = await FollowRequests.findBy({
@@ -54,8 +52,10 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			});
 
 			for (const request of requests) {
-				const followee = await Users.findOneByOrFail(request.followeeId);
-				await rejectFollowRequest(followee, follower);
+				if (followee != null) {
+					const followee = await Users.findOneBy(request.followeeId);
+					await rejectFollowRequest(followee, follower);
+				}
 			}
 		}
 	}
@@ -79,11 +79,9 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 					id: following.followerId,
 				});
 
-				if (follower == null) {
-					throw `Cant find follower ${following.followerId}`;
+				if (follower != null) {
+					await deleteFollowing(follower, followee, true);
 				}
-
-				await deleteFollowing(follower, followee, true);
 			}
 
 			const requests = await FollowRequests.findBy({
@@ -91,8 +89,11 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			});
 
 			for (const request of requests) {
-				const follower = await Users.findOneByOrFail(request.followerId);
-				await cancelFollowRequest(followee, follower);
+				const follower = await Users.findOneBy(request.followerId);
+
+				if (follower != null) {
+					await cancelFollowRequest(followee, follower);
+				}
 			}
 		}
 	}
