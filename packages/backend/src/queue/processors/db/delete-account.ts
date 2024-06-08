@@ -52,8 +52,10 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			});
 
 			for (const request of requests) {
-				const followee = await Users.findOneBy(request.followeeId);
-				
+				const followee = await Users.findOneBy({
+					id: request.followeeId,
+				});
+
 				if (followee != null) {
 					await rejectFollowRequest(followee, follower);
 				}
@@ -90,7 +92,9 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			});
 
 			for (const request of requests) {
-				const follower = await Users.findOneBy(request.followerId);
+				const follower = await Users.findOneBy({
+					id: request.followerId,
+				});
 
 				if (follower != null) {
 					await cancelFollowRequest(followee, follower);
