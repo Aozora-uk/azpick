@@ -52,8 +52,9 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			});
 
 			for (const request of requests) {
+				const followee = await Users.findOneBy(request.followeeId);
+				
 				if (followee != null) {
-					const followee = await Users.findOneBy(request.followeeId);
 					await rejectFollowRequest(followee, follower);
 				}
 			}
