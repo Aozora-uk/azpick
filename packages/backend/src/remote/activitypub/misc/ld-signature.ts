@@ -120,6 +120,7 @@ export class LdSignature {
 			headers: {
 				Accept: 'application/ld+json, application/json',
 			},
+			size: 1024 * 1024, // 1MiB
 			// TODO
 			//timeout: this.loderTimeout,
 			agent: u => u.protocol === 'http:' ? httpAgent : httpsAgent,
