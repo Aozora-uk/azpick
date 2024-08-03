@@ -7335,10 +7335,10 @@ syslog-pro@1.0.0:
   dependencies:
     moment "^2.22.2"
 
-systeminformation@5.12.6:
-  version "5.12.6"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.12.6.tgz#b75d7aaf9f5da32439fc633d2be9eb741691d200"
-  integrity sha512-FkCvT5BOuH1OE3+8lFM25oXIYJ0CM8kq4Wgvz2jyBTrsOIgha/6gdJXgbF4rv+g0j/5wJqQLDKan7kc/p7uIvw==
+systeminformation@5.22.11:
+  version "5.22.11"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.22.11.tgz#42be7b650ce0a8b940c06219a6647f6ab3f7a349"
+  integrity sha512-aLws5yi4KCHTb0BVvbodQY5bY8eW4asMRDTxTW46hqw9lGjACX6TlLdJrkdoHYRB0qs+MekqEq1zG7WDnWE8Ug==
 
 tapable@^2.2.0:
   version "2.2.0"
