@@ -7,10 +7,25 @@
 
 You should also include the user name that made the change.
 -->
+## 12.119.2-fix.7.0 (2024/08/04)
+### Improvements
+- Dockerでjemallocを使うように @atsu1125
+- Node 18.0.4 @atsu1125
+- ドライブのファイルのurl, uri, src の上限引き上げ @tai-cha @slofp @atsu1125
+- Deliver queueのJSONシリアライズとダイジェスト計算は事前に行うように @mei23 @atsu1125
+
+### Bugfixes
+- node-fetchのレスポンスのサイズを制限 @zotanmew @naskya @atsu1125
+- 名前を空白文字列だけにできる問題を修正 @kakkokari-gtyih
+- 凍結をすぐ反映するように @atsu1125
+- ユーザーのリアクション一覧でミュートとブロックが機能してないのを修正 @Sayamame-beans @zyoshoka @atsu1125
+- 連合の「連合中」,「購読中」,「配信中」に対してブロックしているサーバー、配信停止しているサーバーを含めないように @tai-cha
+- 下書き/削除して編集で保持されない項目があった問題（引用・DM宛先）を修正 @Sayamame-beans @atsu1125
+- 「アニメーション画像を再生しない」がオンのときでもサーバーのバナー画像・背景画像がアニメーションしてしまう問題を修正 @kakkokari-gtyih @Mar0xy @atsu1125
 
 ## 12.119.2-fix.6.9 (2024/06/08)
 ### Improvements
-- モートユーザーのチャート生成を無効化できるようにするのをリアクションも対象に @atsu1125
+- リモートユーザーのチャート生成を無効化できるようにするのをリアクションも対象に @atsu1125
 
 ### Bugfixes
 - 修正：リモートユーザーを凍結したときにフォローリクエストも拒否するようにする @atsu1125
