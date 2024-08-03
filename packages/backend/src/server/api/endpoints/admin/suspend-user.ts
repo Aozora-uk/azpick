@@ -4,7 +4,7 @@ import { Users, Followings, Notifications, FollowRequests } from '@/models/index
 import { User } from '@/models/entities/user.js';
 import { insertModerationLog } from '@/services/insert-moderation-log.js';
 import { doPostSuspend } from '@/services/suspend-user.js';
-import { publishUserEvent } from '@/services/stream.js';
+import { publishUserEvent, publishInternalEvent } from '@/services/stream.js';
 import { Not, IsNull } from 'typeorm';
 import { rejectFollowRequest } from '@/services/following/reject.js';
 
@@ -43,6 +43,8 @@ export default define(meta, paramDef, async (ps, me) => {
 	await Users.update(user.id, {
 		isSuspended: true,
 	});
+
+	publishInternalEvent('userChangeSuspendedState', { id: user.id, isSuspended: true });
 
 	insertModerationLog(me, 'suspend', {
 		targetId: user.id,
