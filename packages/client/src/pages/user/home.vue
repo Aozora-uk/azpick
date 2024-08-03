@@ -127,6 +127,8 @@ import * as os from '@/os';
 import { useRouter } from '@/router';
 import { i18n } from '@/i18n';
 import { $i } from '@/account';
+import { getStaticImageUrl } from '@/scripts/get-static-image-url';
+import { defaultStore } from '@/store.js';
 
 const XPhotos = defineAsyncComponent(() => import('./index.photos.vue'));
 const XActivity = defineAsyncComponent(() => import('./index.activity.vue'));
@@ -145,8 +147,14 @@ let bannerEl = $ref<null | HTMLElement>(null);
 
 const style = $computed(() => {
 	if (props.user.bannerUrl == null) return {};
-	return {
-		backgroundImage: `url(${ props.user.bannerUrl })`,
+	if (defaultStore.state.disableShowingAnimatedImages) {
+		return {
+			backgroundImage: `url(${ getStaticImageUrl(props.user.bannerUrl) })`,
+		};
+	} else {
+		return {
+			backgroundImage: `url(${ props.user.bannerUrl })`,
+		};
 	};
 });
 
