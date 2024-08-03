@@ -19,6 +19,7 @@ import { queueLogger } from './logger.js';
 import { getJobInfo } from './get-job-info.js';
 import { systemQueue, dbQueue, deliverQueue, inboxQueue, objectStorageQueue, endedPollNotificationQueue, webhookDeliverQueue, emailDeliverQueue } from './queues.js';
 import { ThinUser } from './types.js';
+import { createDigest } from '@/remote/activitypub/ap-request.js';
 
 function renderError(e: Error): any {
 	return {
@@ -96,11 +97,14 @@ export function deliver(user: ThinUser, content: unknown, to: string | null) {
 	if (content == null) return null;
 	if (to == null) return null;
 
+	const contentBody = JSON.stringify(content);
+
 	const data = {
 		user: {
 			id: user.id,
 		},
-		content,
+		content: contentBody,
+		digest: createDigest(contentBody),
 		to,
 	};
 
