@@ -7,6 +7,11 @@
 
 You should also include the user name that made the change.
 -->
+
+## 12.119.2-fix.7.1 (2024/08/04)
+### Bugfixes
+- アカウント削除後にすぐ使えないようにする @atsu1125
+
 ## 12.119.2-fix.7.0 (2024/08/04)
 ### Improvements
 - Dockerでjemallocを使うように @atsu1125
