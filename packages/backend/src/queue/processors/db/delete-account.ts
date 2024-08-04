@@ -11,6 +11,7 @@ import { emailDeliver } from '@/queue/index.js';
 import deleteFollowing from '@/services/following/delete.js';
 import cancelFollowRequest from '@/services/following/requests/cancel.js';
 import { rejectFollowRequest } from '@/services/following/reject.js';
+import { publishUserEvent, publishInternalEvent } from '@/services/stream.js';
 
 const logger = queueLogger.createSubLogger('delete-account');
 
@@ -246,6 +247,8 @@ export async function deleteAccount(job: Bull.Job<DbUserDeleteJobData>): Promise
 			await Clips.delete({
 				userId: job.data.user.id,
 			});
+			publishInternalEvent('userChangeSuspendedState', { id: job.data.user.id, isSuspended: true });
+			publishUserEvent(job.data.user.id, 'terminate', {});
 		} else {
 			await Users.delete(job.data.user.id);
 		}
