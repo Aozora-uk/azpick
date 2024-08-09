@@ -15,7 +15,7 @@ You should also include the user name that made the change.
 ## 12.119.2-fix.7.0 (2024/08/04)
 ### Improvements
 - Dockerでjemallocを使うように @atsu1125
-- Node 18.0.4 @atsu1125
+- Node 18.20.4 @atsu1125
 - ドライブのファイルのurl, uri, src の上限引き上げ @tai-cha @slofp @atsu1125
 - Deliver queueのJSONシリアライズとダイジェスト計算は事前に行うように @mei23 @atsu1125
 
