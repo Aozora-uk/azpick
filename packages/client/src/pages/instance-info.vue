@@ -163,15 +163,21 @@ const usersPagination = {
 };
 
 async function fetch() {
+	if (iAmModerator) {
+		instance = await os.api('admin/federation/show-instance', {
+			host: props.host,
+		});
+	} else {
+		instance = await os.api('federation/show-instance', {
+			host: props.host,
+		});
+	}
 	if (iAmAdmin) {
 		meta = await os.api('admin/meta');
+		isExactlyBlocked = meta.blockedHosts.includes(instance.host);
 	}
-	instance = await os.api('federation/show-instance', {
-		host: props.host,
-	});
 	suspended = instance.isSuspended;
 	isBlocked = instance.isBlocked;
-	isExactlyBlocked = meta.blockedHosts.includes(instance.host);
 }
 
 async function toggleBlock(ev) {

@@ -320,6 +320,10 @@ export const routes = [{
 		name: 'users',
 		component: page(() => import('./pages/admin/users.vue')),
 	}, {
+		path: '/federation',
+		name: 'federation',
+		component: page(() => import('./pages/admin/federation.vue')),
+	}, {
 		path: '/emojis',
 		name: 'emojis',
 		component: page(() => import('./pages/admin/emojis.vue')),

@@ -453,7 +453,7 @@ onMounted(async () => {
 		newUsers = res;
 	});
 
-	os.api('federation/instances', {
+	os.api('admin/federation/instances', {
 		sort: '+lastCommunicatedAt',
 		limit: 25,
 	}).then(res => {
