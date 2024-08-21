@@ -52,7 +52,7 @@ function onInstanceClick(i) {
 }
 
 useInterval(() => {
-	os.api('federation/instances', {
+	os.apiGet('federation/instances', {
 		sort: '+lastCommunicatedAt',
 		limit: 25,
 	}).then(res => {

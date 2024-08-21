@@ -89,7 +89,7 @@ os.api('hashtags/list', {
 	tags = _tags;
 });
 
-os.api('federation/instances', {
+os.apiGet('federation/instances', {
 	sort: '+pubSub',
 	limit: 20,
 }).then(_instances => {
