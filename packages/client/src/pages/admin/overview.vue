@@ -412,7 +412,7 @@ onMounted(async () => {
 		});
 	});
 
-	os.api('get-online-users-count').then(res => {
+	os.apiGet('get-online-users-count').then(res => {
 		onlineUsersCount = res.count;
 	});
 

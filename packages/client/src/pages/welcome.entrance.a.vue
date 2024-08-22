@@ -78,7 +78,7 @@ os.api('stats').then(_stats => {
 	stats = _stats;
 });
 
-os.api('get-online-users-count').then(res => {
+os.apiGet('get-online-users-count').then(res => {
 	onlineUsersCount = res.count;
 });
 

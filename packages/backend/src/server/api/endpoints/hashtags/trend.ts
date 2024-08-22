@@ -24,6 +24,8 @@ export const meta = {
 	tags: ['hashtags'],
 
 	requireCredential: false,
+	allowGet: true,
+	cacheSec: 60 * 1,
 
 	res: {
 		type: 'array',
