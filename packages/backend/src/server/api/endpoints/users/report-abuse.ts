@@ -94,7 +94,7 @@ export default define(meta, paramDef, async (ps, me) => {
 				userId: moderator.id,
 			});
 
-			if (emailRecipientProfile.email && emailRecipientProfile.emailVerified) {
+			if (emailRecipientProfile.email && emailRecipientProfile.emailVerified && emailRecipientProfile.receiveAnnouncementEmail) {
 				emailDeliver(emailRecipientProfile.email, 'New abuse report',
 					sanitizeHtml(ps.comment),
 					sanitizeHtml(ps.comment));
