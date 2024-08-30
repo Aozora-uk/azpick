@@ -8,6 +8,28 @@
 You should also include the user name that made the change.
 -->
 
+## 12.119.2-fix.7.2 (2024/08/30)
+### Improvements
+- signupのレートリミット @atsu1125
+- delete系のレートリミット @Johann150 @atsu1125
+- 連合系のAPIをモデレータ用に切り出し @atsu1125
+- 通報発生時にモデレータにメールを送るように @atsu1125
+- AllowGetするエンドポイントを追加 @atsu1125
+- Indicate movedTo 引越し先を表示 @mei23
+- 管理者が一括でノートを消すAPIを追加 @Johann150 @atsu1125
+
+### Bugfixes
+- フォローリクエストのページネーションを修正 @sim1222 @atsu1125
+- ローカルユーザー設定値をここでコミットしてるのは変 @mei23
+- downloadUrlがプロキシ除外ホストの設定を読んでない @mei23
+- パスワードリセットで期限切れのものを削除するように・レートリミット追加 @Johann150 @atsu1125
+- 非ブロックインスタンスのクエリを間違っていたのを修正 @atsu1125
+- 通報発生時に管理者にメールを送れてなかったのを修正 @atsu1125
+- 絵文字を追加したユーザーのアカウント削除ができなくなっていたのを修正 @atsu1125
+- fix: 個人カードのemojiがバッテリーになっている @yupix
+- fix 絵文字ピッカーでバッテリーの絵文字が複数表示される問題を修正 @Srgr0
+- admin/drive/filesのAPI権限定義修正 @CyberRex0
+
 ## 12.119.2-fix.7.1 (2024/08/04)
 ### Bugfixes
 - アカウント削除後にすぐ使えないようにする @atsu1125
