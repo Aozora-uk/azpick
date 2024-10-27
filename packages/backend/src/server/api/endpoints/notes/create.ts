@@ -84,6 +84,12 @@ export const meta = {
 			id: 'be9529e9-fe72-4de0-ae43-0b363c4938af',
 		},
 
+		noSuchFile: {
+			message: 'Some files are not found.',
+			code: 'NO_SUCH_FILE',
+			id: 'b6992544-63e7-67f0-fa7f-32444b1b5306',
+		},
+
 		contentRequired: {
 			message: 'Content required. You need to set text, fileIds, renoteId or poll.',
 			code: 'CONTENT_REQUIRED',
@@ -191,6 +197,9 @@ export default define(meta, paramDef, async (ps, user) => {
 			.orderBy('array_position(ARRAY[:...fileIds], "id"::text)')
 			.setParameters({ fileIds })
 			.getMany();
+		if (files.length !== fileIds.length) {
+			throw new ApiError(meta.errors.noSuchFile);
+		}
 	}
 
 	let renote: Note | null = null;
