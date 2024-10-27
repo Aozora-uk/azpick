@@ -68,13 +68,11 @@ describe('Note', () => {
 		assert.strictEqual(res.status, 400);
 	}));
 
-	it('不正なファイルIDは無視', async(async () => {
+	it('不正なファイルIDで怒られる', async(async () => {
 		const res = await request('/notes/create', {
 			fileIds: ['kyoppie'],
 		}, alice);
-		assert.strictEqual(res.status, 200);
-		assert.strictEqual(typeof res.body === 'object' && !Array.isArray(res.body), true);
-		assert.deepStrictEqual(res.body.createdNote.fileIds, []);
+		assert.strictEqual(res.status, 400);
 	}));
 
 	it('返信できる', async(async () => {
