@@ -340,6 +340,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			doNotSendNotificationEmailsForAbuseReportToModerator: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			emailToReceiveAbuseReport: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -444,6 +448,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		enableIpLogging: instance.enableIpLogging,
 		enableActiveEmailValidation: instance.enableActiveEmailValidation,
 		doNotSendNotificationEmailsForAbuseReport: instance.doNotSendNotificationEmailsForAbuseReport,
+		doNotSendNotificationEmailsForAbuseReportToModerator: instance.doNotSendNotificationEmailsForAbuseReportToModerator,
 		emailToReceiveAbuseReport: instance.emailToReceiveAbuseReport,
 	};
 });
