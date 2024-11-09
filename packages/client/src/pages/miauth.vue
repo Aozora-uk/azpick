@@ -71,7 +71,7 @@ async function accept(): Promise<void> {
 	state = 'accepted';
 	if (props.callback) {
 		const cbUrl = new URL(props.callback);
-		if (['javascript:', 'file:', 'data:', 'mailto:', 'tel:'].includes(cbUrl.protocol)) throw new Error('invalid url');
+		if (['javascript:', 'file:', 'data:', 'mailto:', 'tel:', 'vbscript:'].includes(cbUrl.protocol)) throw new Error('invalid url');
 		location.href = appendQuery(props.callback, query({
 			session: props.session,
 		}));
