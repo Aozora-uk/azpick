@@ -105,6 +105,8 @@ export const paramDef = {
 		objectStorageS3ForcePathStyle: { type: 'boolean' },
 		enableIpLogging: { type: 'boolean' },
 		enableActiveEmailValidation: { type: 'boolean' },
+		doNotSendNotificationEmailsForAbuseReport: { type: 'boolean' },
+		emailToReceiveAbuseReport: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -431,6 +433,14 @@ export default define(meta, paramDef, async (ps, me) => {
 
 	if (ps.enableActiveEmailValidation !== undefined) {
 		set.enableActiveEmailValidation = ps.enableActiveEmailValidation;
+	}
+
+	if (ps.doNotSendNotificationEmailsForAbuseReport !== undefined) {
+		set.doNotSendNotificationEmailsForAbuseReport = ps.doNotSendNotificationEmailsForAbuseReport;
+	}
+
+	if (ps.emailToReceiveAbuseReport !== undefined) {
+		set.emailToReceiveAbuseReport = ps.emailToReceiveAbuseReport;
 	}
 
 	await db.transaction(async transactionalEntityManager => {
