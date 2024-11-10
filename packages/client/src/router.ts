@@ -352,6 +352,10 @@ export const routes = [{
 		name: 'abuses',
 		component: page(() => import('./pages/admin/abuses.vue')),
 	}, {
+		path: '/abuse-resolvers',
+		name: 'abuse-resolvers',
+		component: page(() => import('./pages/admin/abuse-resolvers.vue')),
+	}, {
 		path: '/moderation-logs',
 		name: 'moderation-logs',
 		component: page(() => import('./pages/admin/moderation-logs.vue')),

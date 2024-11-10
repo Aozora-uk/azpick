@@ -13,6 +13,16 @@
 					<FormInput v-model="email" type="email" class="_formBlock">
 						<template #label>{{ i18n.ts.emailAddress }}</template>
 					</FormInput>
+					<FormInput v-model="emailToReceiveAbuseReport" type="email" class="_formBlock">
+						<template #label>{{ $ts.emailToReceiveAbuseReport }}</template>
+						<template #caption>{{ $ts.emailToReceiveAbuseReportCaption }}</template>
+					</FormInput>
+					<FormSwitch v-model="doNotSendNotificationEmailsForAbuseReport" class="_formBlock">
+						<template #label>{{ $ts.doNotSendNotificationEmailsForAbuseReport }}</template>
+					</FormSwitch>
+					<FormSwitch v-if="!doNotSendNotificationEmailsForAbuseReport" v-model="doNotSendNotificationEmailsForAbuseReportToModerator" class="_formBlock">
+						<template #label>{{ $ts.doNotSendNotificationEmailsForAbuseReportToModerator }}</template>
+					</FormSwitch>
 
 					<FormSection>
 						<template #label>{{ i18n.ts.smtpConfig }}</template>
@@ -61,6 +71,9 @@ import { definePageMetadata } from '@/scripts/page-metadata';
 
 let enableEmail: boolean = $ref(false);
 let email: any = $ref(null);
+let emailToReceiveAbuseReport: any = $ref(null);
+let doNotSendNotificationEmailsForAbuseReport: boolean = $ref(false);
+let doNotSendNotificationEmailsForAbuseReportToModerator: boolean = $ref(false);
 let smtpSecure: boolean = $ref(false);
 let smtpHost: string = $ref('');
 let smtpPort: number = $ref(0);
@@ -71,6 +84,9 @@ async function init() {
 	const meta = await os.api('admin/meta');
 	enableEmail = meta.enableEmail;
 	email = meta.email;
+	emailToReceiveAbuseReport = meta.emailToReceiveAbuseReport;
+	doNotSendNotificationEmailsForAbuseReport = meta.doNotSendNotificationEmailsForAbuseReport;
+	doNotSendNotificationEmailsForAbuseReportToModerator = meta.doNotSendNotificationEmailsForAbuseReportToModerator;
 	smtpSecure = meta.smtpSecure;
 	smtpHost = meta.smtpHost;
 	smtpPort = meta.smtpPort;
@@ -96,6 +112,9 @@ function save() {
 	os.apiWithDialog('admin/update-meta', {
 		enableEmail,
 		email,
+		emailToReceiveAbuseReport,
+		doNotSendNotificationEmailsForAbuseReport,
+		doNotSendNotificationEmailsForAbuseReportToModerator,
 		smtpSecure,
 		smtpHost,
 		smtpPort,
