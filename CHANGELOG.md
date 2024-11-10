@@ -8,6 +8,28 @@
 You should also include the user name that made the change.
 -->
 
+## 12.119.2-fix.7.3 (2024/11/10)
+### Improvements
+- 空（スペースのみ）の注釈のCWの投稿は作成できないように @syuilo @atsu1125
+- Node v18.0.0を最低要件に（インストール時に弾く） @atsu1125
+- Bull Dashboard 6.3.3を導入 @atsu1125
+- 通報の即時解決機能を追加（有効期間の設定はなし） @chocolate-pie @u1-liquid @atsu1125
+- 通報通知を受け取るかオプションで選べるように @chocolate-pie @atsu1125
+- 通報通知をモデレータのメールアドレスに送る機能をオフにできるように @atsu1125
+- 通報通知を受け取るメールアドレスを設定できるように @chocolate-pie @atsu1125
+- 自分とモデレーター以外のユーザーから二要素認証関連のデータが取得できないように @kakkokari-gtyih @syuilo @atsu1125
+
+### Bugfixes
+- Internal Storageのドライブファイルが見つからない時にDummy imageが返されないのを修正 @atsu1125
+- notes/createで、fileIdsと見つかったファイルの数が異なる場合はスルーするのではなくエラーにする @syuilo @atsu1125
+- 自分のフォロワーのみ投稿をダイレクト公開範囲でリノートできないのを修正 @atsu1125
+- 純粋なリノートにリアクションできないように @zyoshoka @atsu1125
+- MiAuth 外部URLへのリダイレクトのバリデーションを強化 @kakkokari-gtyih @u1-liquid
+- SQLのサニタイズを強化 @kakkokari-gtyih @u1-liquid
+- media proxyでUser-Agentをチェック @eternal-flame-AD @atsu1125
+- コントロールパネルで権限的に設定できない項目の警告は表示しないように @atsu1125
+- リモートユーザーの照会をオリジナルにリダイレクトするように @momoirodouhu @atsu1125
+
 ## 12.119.2-fix.7.2 (2024/08/30)
 ### Improvements
 - signupのレートリミット @atsu1125
