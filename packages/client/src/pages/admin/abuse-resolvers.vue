@@ -152,7 +152,7 @@ const headerTabs = $computed(() => []);
 
 definePageMetadata({
 	title: i18n.ts.abuseReportResolvers,
-	icon: 'fas fa-exclamation-circles',
+	icon: 'fas fa-exclamation-circle',
 });
 </script>
 
