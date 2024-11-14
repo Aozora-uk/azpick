@@ -399,6 +399,7 @@ export const UserRepository = db.getRepository(User).extend({
 
 			...(opts.includeSecrets ? {
 				email: profile!.email,
+				unverifiedEmail: profile!.unverifiedEmail,
 				emailVerified: profile!.emailVerified,
 				securityKeysList: profile!.twoFactorEnabled
 					? UserSecurityKeys.find({
