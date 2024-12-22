@@ -5,7 +5,6 @@ import * as os from 'node:os';
 import cluster from 'node:cluster';
 import chalk from 'chalk';
 import chalkTemplate from 'chalk-template';
-import semver from 'semver';
 
 import Logger from '@/services/logger.js';
 import loadConfig from '@/config/load.js';
@@ -74,9 +73,11 @@ export async function masterMain() {
 		await spawnWorkers(config.clusterLimit);
 	}
 
-	bootLogger.succ(`Now listening on port ${config.port} on ${config.url}`, null, true);
+	if (!envOption.onlyQueue) {
+		bootLogger.succ(`Now listening on port ${config.port} on ${config.url}`, null, true);
+	}
 
-	if (!envOption.noDaemons) {
+	if (!envOption.noDaemons && !envOption.onlyQueue) {
 		import('../daemons/server-stats.js').then(x => x.default());
 		import('../daemons/queue-stats.js').then(x => x.default());
 		import('../daemons/janitor.js').then(x => x.default());
@@ -92,18 +93,17 @@ function showEnvironment(): void {
 		logger.warn('The environment is not in production mode.');
 		logger.warn('DO NOT USE FOR PRODUCTION PURPOSE!', null, true);
 	}
+
+	if (envOption.onlyServer) logger.warn('onlyServer is set.');
+	if (envOption.onlyQueue) logger.warn('onlyQueue is set.');
+	if (envOption.noDaemons) logger.warn('noDaemons is set.');
+	if (envOption.disableClustering) logger.warn('disableClustering is set.');
 }
 
 function showNodejsVersion(): void {
 	const nodejsLogger = bootLogger.createSubLogger('nodejs');
 
 	nodejsLogger.info(`Version ${process.version} detected.`);
-
-	const minVersion = fs.readFileSync(`${_dirname}/../../../../.node-version`, 'utf-8').trim();
-	if (semver.lt(process.version, minVersion)) {
-		nodejsLogger.error(`At least Node.js ${minVersion} required!`);
-		process.exit(1);
-	}
 }
 
 function loadConfigBoot(): Config {

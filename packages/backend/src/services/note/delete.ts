@@ -56,6 +56,14 @@ export default async function(user: { id: User['id']; uri: User['uri']; host: Us
 			deliverToConcerned(user, note, content);
 		}
 
+		// also send delete activity of cascaded notes to stream
+		const allCascadingNotes = (await findAllCascadingNotes(note));
+		for (const eachCascadingNote of allCascadingNotes) {
+			publishNoteStream(eachCascadingNote.id, 'deleted', {
+				deletedAt: deletedAt,
+			});
+		}
+
 		// also deliever delete activity to cascaded notes
 		const cascadingNotes = (await findCascadingNotes(note)).filter(note => !note.localOnly); // filter out local-only notes
 		for (const cascadingNote of cascadingNotes) {
@@ -68,7 +76,9 @@ export default async function(user: { id: User['id']; uri: User['uri']; host: Us
 
 		// 統計を更新
 		notesChart.update(note, false);
-		perUserNotesChart.update(user, note, false);
+		if (!config.disableChartsForRemoteUser || (user.host == null)) {
+			perUserNotesChart.update(user, note, false);
+		}
 
 		if (Users.isRemoteUser(user)) {
 			registerOrFetchInstanceDoc(user.host).then(i => {
@@ -106,6 +116,28 @@ async function findCascadingNotes(note: Note) {
 	return cascadingNotes.filter(note => note.userHost === null); // filter out non-local users
 }
 
+async function findAllCascadingNotes(note: Note) {
+	const cascadingNotes: Note[] = [];
+
+	const recursive = async (noteId: string) => {
+		const query = Notes.createQueryBuilder('note')
+			.where('note.replyId = :noteId', { noteId })
+			.orWhere(new Brackets(q => {
+				q.where('note.renoteId = :noteId', { noteId })
+				.andWhere('note.text IS NOT NULL');
+			}))
+			.leftJoinAndSelect('note.user', 'user');
+		const replies = await query.getMany();
+		for (const reply of replies) {
+			cascadingNotes.push(reply);
+			await recursive(reply.id);
+		}
+	};
+	await recursive(note.id);
+
+	return cascadingNotes;
+}
+
 async function getMentionedRemoteUsers(note: Note) {
 	const where = [] as any[];
 
@@ -132,8 +164,9 @@ async function getMentionedRemoteUsers(note: Note) {
 }
 
 async function deliverToConcerned(user: { id: ILocalUser['id']; host: null; }, note: Note, content: any) {
+	const retryable = true;
 	deliverToFollowers(user, content);
-	deliverToRelays(user, content);
+	deliverToRelays(user, content, retryable);
 	const remoteUsers = await getMentionedRemoteUsers(note);
 	for (const remoteUser of remoteUsers) {
 		deliverToUser(user, content, remoteUser);

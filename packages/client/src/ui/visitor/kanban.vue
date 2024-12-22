@@ -24,12 +24,15 @@
 								<Mfm :text="announcement.text"/>
 								<img v-if="announcement.imageUrl" :src="announcement.imageUrl" alt="announcement image"/>
 							</div>
+							<div class="footer">
+								<div><i class="far fa-clock"></i> {{ $ts.createdAt }}: <MkTime :time="announcement.createdAt" mode="detail"/></div>
+							</div>
 						</section>
 					</MkPagination>
 				</div>
 				<div v-if="poweredBy" class="powered-by">
 					<b><MkA to="/">{{ host }}</MkA></b>
-					<small>Powered by <a href="https://github.com/rca-fedi/cherrypick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
+					<small>Powered by <a href="https://github.com/aozora-uk/azpick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
 				</div>
 			</template>
 		</div>
@@ -212,6 +215,12 @@ export default defineComponent({
 				> header {
 					padding: 12px 16px;
 					border-bottom: solid 1px rgba(255, 255, 255, 0.5);
+				}
+
+				> .footer {
+					margin: var(--margin) 0 var(--margin) 0;
+					font-size: 85%;
+					opacity: 0.75;
 				}
 
 				> .list {

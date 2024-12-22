@@ -40,7 +40,7 @@ export async function parseAudience(actor: CacheableRemoteUser, to?: ApObject, c
 		};
 	}
 
-	if (toGroups.followers.length > 0) {
+	if (toGroups.followers.length > 0 || ccGroups.followers.length > 0) {
 		return {
 			visibility: 'followers',
 			mentionedUsers,
@@ -80,7 +80,7 @@ function groupingAudience(ids: string[], actor: CacheableRemoteUser) {
 function isPublic(id: string) {
 	return [
 		'https://www.w3.org/ns/activitystreams#Public',
-		'as#Public',
+		'as:Public',
 		'Public',
 	].includes(id);
 }

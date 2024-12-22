@@ -1,5 +1,5 @@
 <template>
-<div class="hpaizdrt" :style="bg">
+<div v-tooltip="tooltip" class="hpaizdrt" :style="bg">
 	<img v-if="instance.faviconUrl" class="icon" :src="instance.faviconUrl"/>
 	<span class="name">{{ instance.name }}</span>
 </div>
@@ -7,28 +7,37 @@
 
 <script lang="ts" setup>
 import { } from 'vue';
-import { instanceName } from '@/config';
+import { instanceName, version, software } from '@/config';
 import { instance as Instance } from '@/instance';
+import { getProxiedImageUrlNullable } from '@/scripts/media-proxy';
 
 const props = defineProps<{
 	instance?: {
 		faviconUrl?: string
 		name: string
 		themeColor?: string
+		softwareName?: string;
+		softwareVersion?: string;
 	}
 }>();
 
 // if no instance data is given, this is for the local instance
 const instance = props.instance ?? {
-	faviconUrl: Instance.iconUrl || Instance.faviconUrl || '/favicon.ico',
+	faviconUrl: getProxiedImageUrlNullable(Instance.iconUrl) ?? getProxiedImageUrlNullable(Instance.faviconUrl) ?? '/favicon.ico',
 	name: instanceName,
-	themeColor: (document.querySelector('meta[name="theme-color-orig"]') as HTMLMetaElement)?.content
+	themeColor: (document.querySelector('meta[name="theme-color-orig"]') as HTMLMetaElement).content,
+	softwareName: software,
+	softwareVersion: version,
 };
+
+const tooltip = instance.softwareName == null || instance.softwareVersion == null
+	? null
+	: instance.softwareName + ' ' + instance.softwareVersion;
 
 const themeColor = instance.themeColor ?? '#777777';
 
 const bg = {
-	background: `linear-gradient(90deg, ${themeColor}, ${themeColor}00)`
+	background: `linear-gradient(90deg, ${themeColor}, ${themeColor}00)`,
 };
 </script>
 

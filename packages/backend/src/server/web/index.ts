@@ -44,7 +44,23 @@ const bullBoardPath = '/queue';
 
 // Authenticate
 app.use(async (ctx, next) => {
-	if (ctx.path === bullBoardPath || ctx.path.startsWith(bullBoardPath + '/')) {
+	// %71ueueとかでリクエストされたら困るため
+	const url = decodeURI(ctx.path);
+	if (url === bullBoardPath || url.startsWith(bullBoardPath + '/')) {
+		ctx.set('Content-Security-Policy',
+			`base-uri 'self'; `
+			+ `default-src 'none'; `
+			+ `script-src 'self'; `
+			+ `img-src 'self' https: data: blob:; `
+			+ `style-src 'self' 'unsafe-inline' https:; `
+			+ `font-src 'self' https:; `
+			+ `connect-src 'self' data: blob:; `
+			+ `frame-ancestors 'none'`);
+
+		if (!url.startsWith(bullBoardPath + '/static/')) {
+			ctx.set('Cache-Control', 'private, max-age=0, must-revalidate');
+		}
+
 		const token = ctx.cookies.get('token');
 		if (token == null) {
 			ctx.status = 401;
@@ -511,6 +527,7 @@ router.get('(.*)', async ctx => {
 		desc: meta.description,
 		icon: meta.iconUrl,
 		themeColor: meta.themeColor,
+		instanceUrl: config.url,
 	});
 	ctx.set('Cache-Control', 'public, max-age=15');
 });

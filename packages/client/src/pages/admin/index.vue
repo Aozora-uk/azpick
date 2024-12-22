@@ -1,6 +1,6 @@
 <template>
 <div ref="el" class="hiyeyicy" :class="{ wide: !narrow }">
-	<div v-if="!narrow || currentPage?.route.name == null" class="nav">	
+	<div v-if="!narrow || currentPage?.route.name == null" class="nav">
 		<MkSpacer :content-max="700" :margin-min="16">
 			<div class="lxpfedzu">
 				<div class="banner">
@@ -12,6 +12,7 @@
 				<MkInfo v-if="noBotProtection" warn class="info">{{ i18n.ts.noBotProtectionWarning }} <MkA to="/admin/security" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
 				<MkInfo v-if="noEmailServer" warn class="info">{{ i18n.ts.noEmailServerWarning }} <MkA to="/admin/email-settings" class="_link">{{ i18n.ts.configure }}</MkA></MkInfo>
 
+				<FormSwitch v-model="moderator" class="_formBlock" @update:modelValue="toggleModerator">{{ i18n.ts.moderator }}</FormSwitch>
 				<MkSuperMenu :def="menuDef" :grid="currentPage?.route.name == null"></MkSuperMenu>
 			</div>
 		</MkSpacer>
@@ -30,9 +31,13 @@ import MkInfo from '@/components/MkInfo.vue';
 import { scroll } from '@/scripts/scroll';
 import { instance } from '@/instance';
 import * as os from '@/os';
-import { lookupUser } from '@/scripts/lookup-user';
+import { lookupUser, lookupUserByEmail } from '@/scripts/lookup-user';
 import { useRouter } from '@/router';
 import { definePageMetadata, provideMetadataReceiver, setPageMetadata } from '@/scripts/page-metadata';
+import { defaultStore } from '@/store';
+import FormSwitch from '@/components/form/switch.vue';
+import { unisonReload } from '@/scripts/unison-reload';
+import { iAmAdmin } from '@/account';
 
 const isEmpty = (x: string | null) => x == null || x === '';
 
@@ -52,11 +57,14 @@ let narrow = $ref(false);
 let view = $ref(null);
 let el = $ref(null);
 let pageProps = $ref({});
-let noMaintainerInformation = isEmpty(instance.maintainerName) || isEmpty(instance.maintainerEmail);
-let noBotProtection = !instance.disableRegistration && !instance.enableHcaptcha && !instance.enableRecaptcha;
-let noEmailServer = !instance.enableEmail;
+let noMaintainerInformation = iAmAdmin && (isEmpty(instance.maintainerName) || isEmpty(instance.maintainerEmail));
+let noBotProtection = iAmAdmin && (!instance.disableRegistration && !instance.enableHcaptcha && !instance.enableRecaptcha);
+let noEmailServer = iAmAdmin && (!instance.enableEmail);
 let thereIsUnresolvedAbuseReport = $ref(false);
 let currentPage = $computed(() => router.currentRef.value.child);
+let moderator = $ref(false);
+
+moderator = defaultStore.state.enableSudo;
 
 os.api('admin/abuse-user-reports', {
 	state: 'unresolved',
@@ -104,7 +112,7 @@ const menuDef = $computed(() => [{
 	}, {
 		icon: 'fas fa-globe',
 		text: i18n.ts.federation,
-		to: '/about#federation',
+		to: '/admin/federation',
 		active: currentPage?.route.name === 'federation',
 	}, {
 		icon: 'fas fa-clipboard-list',
@@ -131,10 +139,20 @@ const menuDef = $computed(() => [{
 		text: i18n.ts.abuseReports,
 		to: '/admin/abuses',
 		active: currentPage?.route.name === 'abuses',
+	}, {
+		icon: 'fas fa-exclamation-circle',
+		text: i18n.ts.abuseReportResolvers,
+		to: '/admin/abuse-resolvers',
+		active: currentPage?.route.name === 'abuse-resolvers',
+	}, {
+		icon: 'fas fa-clock-rotate-left',
+		text: i18n.ts.moderationlogs,
+		to: '/admin/moderation-logs',
+		active: currentPage?.route.name === 'moderation-logs',
 	}],
 }, {
 	title: i18n.ts.settings,
-	items: [{
+	items: [...(iAmAdmin ? [{
 		icon: 'fas fa-cog',
 		text: i18n.ts.general,
 		to: '/admin/settings',
@@ -154,12 +172,12 @@ const menuDef = $computed(() => [{
 		text: i18n.ts.security,
 		to: '/admin/security',
 		active: currentPage?.route.name === 'security',
-	}, {
+	}] : []), {
 		icon: 'fas fa-globe',
 		text: i18n.ts.relays,
 		to: '/admin/relays',
 		active: currentPage?.route.name === 'relays',
-	}, {
+	}, ...(iAmAdmin ? [{
 		icon: 'fas fa-share-alt',
 		text: i18n.ts.integration,
 		to: '/admin/integrations',
@@ -170,6 +188,11 @@ const menuDef = $computed(() => [{
 		to: '/admin/instance-block',
 		active: currentPage?.route.name === 'instance-block',
 	}, {
+		icon: 'fas fa-ban',
+		text: i18n.ts.emailDomainBlocking,
+		to: '/admin/email-block',
+		active: currentPage?.route.name === 'email-block',
+	}, {
 		icon: 'fas fa-ghost',
 		text: i18n.ts.proxyAccount,
 		to: '/admin/proxy-account',
@@ -179,7 +202,7 @@ const menuDef = $computed(() => [{
 		text: i18n.ts.other,
 		to: '/admin/other-settings',
 		active: currentPage?.route.name === 'other-settings',
-	}],
+	}] : [])],
 }, {
 	title: i18n.ts.info,
 	items: [{
@@ -217,6 +240,30 @@ provideMetadataReceiver((info) => {
 	}
 });
 
+async function toggleModerator(v) {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: v ? i18n.ts.sudoConfirm : i18n.ts.unsudoConfirm,
+	});
+	if (confirm.canceled) {
+		moderator = !v;
+	} else {
+		if (v) {
+			await defaultStore.set('enableSudo', true);
+			await os.alert({
+				text: i18n.ts.sudoActivated,
+			});
+			await unisonReload();
+		} else {
+			await defaultStore.set('enableSudo', false);
+			await os.alert({
+				text: i18n.ts.sudoDeactivated,
+			});
+			await unisonReload();
+		}
+	}
+}
+
 const invite = () => {
 	os.api('admin/invite').then(x => {
 		os.alert({
@@ -239,22 +286,10 @@ const lookup = (ev) => {
 			lookupUser();
 		},
 	}, {
-		text: i18n.ts.note,
-		icon: 'fas fa-pencil-alt',
+		text: `${i18n.ts.user} (${i18n.ts.email})`,
+		icon: 'fas fa-user',
 		action: () => {
-			alert('TODO');
-		},
-	}, {
-		text: i18n.ts.file,
-		icon: 'fas fa-cloud',
-		action: () => {
-			alert('TODO');
-		},
-	}, {
-		text: i18n.ts.instance,
-		icon: 'fas fa-globe',
-		action: () => {
-			alert('TODO');
+			lookupUserByEmail();
 		},
 	}], ev.currentTarget ?? ev.target);
 };

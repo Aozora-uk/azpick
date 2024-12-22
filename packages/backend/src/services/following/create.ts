@@ -154,17 +154,26 @@ export default async function(_follower: { id: User['id'] }, _followee: { id: Us
 		await Blockings.delete(blocking.id);
 	} else {
 		// それ以外は単純に例外
-		if (blocking != null) throw new IdentifiableError('710e8fb0-b8c3-4922-be49-d5d93d8e6a6e', 'blocking');
-		if (blocked != null) throw new IdentifiableError('3338392a-f764-498d-8855-db939dcf8c48', 'blocked');
+		if (blocking) throw new IdentifiableError('710e8fb0-b8c3-4922-be49-d5d93d8e6a6e', 'blocking');
+		if (blocked) throw new IdentifiableError('3338392a-f764-498d-8855-db939dcf8c48', 'blocked');
+	}
+
+	if (Users.isRemoteUser(follower) && ((follower.isSuspended) || (follower.isDeleted))) {
+		//　リモートフォローを受けてすでに凍結済みか削除済みなら、Rejectを送り返しておしまい。
+		//  ただし凍結済みの場合は前段でアクティビティが破棄されるので、このコードに到達してRejectが送られることはない。
+		const content = renderActivity(renderReject(renderFollow(follower, followee, requestId), followee));
+		deliver(followee , content, follower.inbox);
+		return;
 	}
 
 	const followeeProfile = await UserProfiles.findOneByOrFail({ userId: followee.id });
 
 	// フォロー対象が鍵アカウントである or
 	// フォロワーがBotであり、フォロー対象がBotからのフォローに慎重である or
-	// フォロワーがローカルユーザーであり、フォロー対象がリモートユーザーである
+	// フォロワーがローカルユーザーであり、フォロー対象がリモートユーザーである or
+	// フォロワーがサイレンスされている
 	// 上記のいずれかに当てはまる場合はすぐフォローせずにフォローリクエストを発行しておく
-	if (followee.isLocked || (followeeProfile.carefulBot && follower.isBot) || (Users.isLocalUser(follower) && Users.isRemoteUser(followee))) {
+	if (followee.isLocked || (followeeProfile.carefulBot && follower.isBot) || (Users.isLocalUser(follower) && Users.isRemoteUser(followee)) || follower.isSilenced) {
 		let autoAccept = false;
 
 		// 鍵アカウントであっても、既にフォローされていた場合はスルー

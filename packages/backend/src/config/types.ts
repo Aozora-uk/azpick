@@ -65,6 +65,12 @@ export type Source = {
 	proxyRemoteFiles?: boolean;
 
 	signToActivityPubGet?: boolean;
+
+	disableAntenna?: boolean;
+	disableSearch?: boolean;
+	chartCommitIntervalSecond?: number;
+	disableChartsForRemoteUser?: boolean;
+	disableUrlPreview?: boolean;
 };
 
 /**

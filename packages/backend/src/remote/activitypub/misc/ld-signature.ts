@@ -1,6 +1,6 @@
 import * as crypto from 'node:crypto';
 import jsonld from 'jsonld';
-import { CONTEXTS } from './contexts.js';
+import { CONTEXTS, WellKnownContext } from './contexts.js';
 import fetch from 'node-fetch';
 import { httpAgent, httpsAgent } from '@/misc/fetch.js';
 
@@ -83,6 +83,13 @@ export class LdSignature {
 		});
 	}
 
+	public async compactToWellKnown(data: any): Promise<any> {
+		const options = { documentLoader: this.getLoader() };
+		const context = WellKnownContext as any;
+		delete data["signature"];
+		return await jsonld.compact(data, context, options);
+	}
+
 	private getLoader() {
 		return async (url: string): Promise<any> => {
 			if (!url.match('^https?\:\/\/')) throw `Invalid URL ${url}`;
@@ -113,6 +120,7 @@ export class LdSignature {
 			headers: {
 				Accept: 'application/ld+json, application/json',
 			},
+			size: 1024 * 1024, // 1MiB
 			// TODO
 			//timeout: this.loderTimeout,
 			agent: u => u.protocol === 'http:' ? httpAgent : httpsAgent,

@@ -43,7 +43,7 @@ export default defineComponent({
 	},
 
 	created() {
-		os.api('notes/featured').then(notes => {
+		os.apiGet('notes/featured').then(notes => {
 			this.notes = notes;
 		});
 	},

@@ -80,6 +80,14 @@
 				<div class="info">
 					<MkA class="created-at" :to="notePage(appearNote)">
 						<MkTime :time="appearNote.createdAt" mode="detail"/>
+						{{ }}
+						<i v-if="appearNote.updatedAt" class="fas fa-pencil-alt"></i>
+						<MkTime
+										v-if="appearNote.updatedAt"
+										:time="appearNote.updatedAt"
+										mode="detail"
+										></MkTime
+						>
 					</MkA>
 				</div>
 				<XReactionsViewer ref="reactionsViewer" :note="appearNote"/>
@@ -184,6 +192,7 @@ const urls = appearNote.text ? extractUrlFromMfm(mfm.parse(appearNote.text)) : n
 const showTicker = (defaultStore.state.instanceTicker === 'always') || (defaultStore.state.instanceTicker === 'remote' && appearNote.user.instance);
 const conversation = ref<misskey.entities.Note[]>([]);
 const replies = ref<misskey.entities.Note[]>([]);
+const enableSudo = defaultStore.state.enableSudo;
 
 const keymap = {
 	'r': () => reply(true),
@@ -197,6 +206,7 @@ const keymap = {
 useNoteCapture({
 	rootEl: el,
 	note: $$(appearNote),
+	pureNote: $$(note),
 	isDeletedRef: isDeleted,
 });
 
@@ -256,9 +266,9 @@ function menu(viaKeyboard = false): void {
 }
 
 function showRenoteMenu(viaKeyboard = false): void {
-	if (!isMyRenote) return;
+	if (!isMyRenote && !($i && ($i.isModerator || $i.isAdmin) && enableSudo)) return;
 	os.popupMenu([{
-		text: i18n.ts.unrenote,
+		text: (isMyRenote) ? i18n.ts.unrenote : i18n.ts.unrenoteAsAdmin,
 		icon: 'fas fa-trash-alt',
 		danger: true,
 		action: () => {

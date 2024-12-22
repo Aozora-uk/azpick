@@ -26,6 +26,9 @@
 					<!-- eslint-disable-next-line vue/no-v-html -->
 					<div class="desc" v-html="meta.description || i18n.ts.headlineMisskey"></div>
 				</div>
+				<div v-if="meta.disableRegistration" class="warn">
+					<MkInfo warn>{{ i18n.ts.invitationRequiredToRegister }}</MkInfo>
+				</div>
 				<div class="action">
 					<MkButton inline rounded gradate data-cy-signup class="button" @click="signup()">{{ i18n.ts.signup }}</MkButton>
 					<MkButton inline rounded data-cy-signin class="button" @click="signin()">{{ i18n.ts.login }}</MkButton>
@@ -60,7 +63,7 @@ import { host, instanceName } from '@/config';
 import * as os from '@/os';
 import number from '@/filters/number';
 import { i18n } from '@/i18n';
-import { mainRouter } from '@/router';
+import MkInfo from '@/components/MkInfo.vue';
 
 let meta = $ref();
 let stats = $ref();
@@ -76,7 +79,7 @@ os.api('stats').then(_stats => {
 	stats = _stats;
 });
 
-os.api('get-online-users-count').then(res => {
+os.apiGet('get-online-users-count').then(res => {
 	onlineUsersCount = res.count;
 });
 
@@ -87,7 +90,7 @@ os.api('hashtags/list', {
 	tags = _tags;
 });
 
-os.api('federation/instances', {
+os.apiGet('federation/instances', {
 	sort: '+pubSub',
 	limit: 20,
 }).then(_instances => {
@@ -257,6 +260,10 @@ function showMenu(ev) {
 
 				> .about {
 					padding: 0 32px;
+				}
+
+				> .warn {
+					padding: 32px 32px 0 32px;
 				}
 
 				> .action {

@@ -30,7 +30,7 @@ export const navbarItemDef = reactive({
 	followRequests: {
 		title: 'followRequests',
 		icon: 'fas fa-user-clock',
-		show: computed(() => $i != null && $i.isLocked),
+		show: computed(() => $i != null && ($i.isLocked || $i.hasPendingReceivedFollowRequest)),
 		indicated: computed(() => $i != null && $i.hasPendingReceivedFollowRequest),
 		to: '/my/follow-requests',
 	},
@@ -56,14 +56,12 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/lists',
 	},
-	/*
 	groups: {
 		title: 'groups',
 		icon: 'fas fa-users',
 		show: computed(() => $i != null),
 		to: '/my/groups',
 	},
-	*/
 	antennas: {
 		title: 'antennas',
 		icon: 'fas fa-satellite',
@@ -96,6 +94,21 @@ export const navbarItemDef = reactive({
 		title: 'channel',
 		icon: 'fas fa-satellite-dish',
 		to: '/channels',
+	},
+	federation: {
+		title: 'federation',
+		icon: 'fas fa-globe',
+		to: '/about#federation',
+	},
+	emojis: {
+		title: 'emojis',
+		icon: 'fas fa-laugh',
+		to: '/about#emojis',
+	},
+	scratchpad: {
+		title: 'scratchpad',
+		icon: 'fas fa-terminal',
+		to: '/scratchpad',
 	},
 	ui: {
 		title: 'switchUi',

@@ -131,7 +131,14 @@ export default define(meta, paramDef, async (ps, _user, token) => {
 
 	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
-	if (ps.name !== undefined) updates.name = ps.name;
+	if (ps.name !== undefined) {
+		if (ps.name === null) {
+			updates.name = null;
+		} else {
+			const trimmedName = ps.name.trim();
+			updates.name = trimmedName === '' ? null : trimmedName;
+		}
+	}
 	if (ps.description !== undefined) profileUpdates.description = ps.description;
 	if (ps.lang !== undefined) profileUpdates.lang = ps.lang;
 	if (ps.location !== undefined) profileUpdates.location = ps.location;
@@ -244,9 +251,9 @@ export default define(meta, paramDef, async (ps, _user, token) => {
 	publishUserEvent(user.id, 'updateUserProfile', await UserProfiles.findOneBy({ userId: user.id }));
 
 	// 鍵垢を解除したとき、溜まっていたフォローリクエストがあるならすべて承認
-	if (user.isLocked && ps.isLocked === false) {
-		acceptAllFollowRequests(user);
-	}
+	//if (user.isLocked && ps.isLocked === false) {
+	//	acceptAllFollowRequests(user);
+	//}
 
 	// フォロワーにUpdateを配信
 	publishToFollowers(user.id);

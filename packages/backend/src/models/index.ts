@@ -1,6 +1,7 @@
 import { } from 'typeorm';
 import { db } from '@/db/postgre.js';
 
+import { AbuseReportResolver } from './entities/abuse-report-resolver.js';
 import { Announcement } from './entities/announcement.js';
 import { AnnouncementRead } from './entities/announcement-read.js';
 import { Instance } from './entities/instance.js';
@@ -67,6 +68,7 @@ import { InstanceRepository } from './repositories/instance.js';
 import { Webhook } from './entities/webhook.js';
 import { UserIp } from './entities/user-ip.js';
 
+export const AbuseReportResolvers = db.getRepository(AbuseReportResolver);
 export const Announcements = db.getRepository(Announcement);
 export const AnnouncementReads = db.getRepository(AnnouncementRead);
 export const Apps = (AppRepository);

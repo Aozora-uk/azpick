@@ -2,9 +2,6 @@ name: Test
 
 on:
   push:
-    branches:
-      - master
-      - develop
   pull_request:
 
 jobs:
@@ -17,14 +14,14 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13
+        image: postgres:15
         ports:
           - 54312:5432
         env:
           POSTGRES_DB: test-cherrypick
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
-        image: redis:6
+        image: redis:7
         ports:
           - 56312:6379
 
@@ -66,7 +63,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:6
@@ -96,7 +93,7 @@ jobs:
     - name: Check yarn.lock
       run: git diff --exit-code yarn.lock
     - name: Copy Configure
-      run: cp .github/cherrypick/test.yml .config
+      run: cp .github/misskey/test.yml .config
     - name: Build
       run: yarn build
     # https://github.com/cypress-io/cypress/issues/4351#issuecomment-559489091

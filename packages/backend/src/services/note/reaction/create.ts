@@ -14,8 +14,12 @@ import deleteReaction from './delete.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { NoteReaction } from '@/models/entities/note-reaction.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import config from '@/config/index.js';
 
 export default async (user: { id: User['id']; host: User['host']; }, note: Note, reaction?: string) => {
+	if (note.renoteId && note.text == null && note.poll == null && note.fileIds.length == 0) {
+		throw new IdentifiableError('12c35529-3c79-4327-b1cc-e2cf63a71925');
+	}
 	// Check blocking
 	if (note.userId !== user.id) {
 		const block = await Blockings.findOneBy({
@@ -76,7 +80,9 @@ export default async (user: { id: User['id']; host: User['host']; }, note: Note,
 		.where('id = :id', { id: note.id })
 		.execute();
 
-	perUserReactionsChart.update(user, note);
+	if (!config.disableChartsForRemoteUser || (user.host == null)) {
+		perUserReactionsChart.update(user, note);
+	}
 
 	// カスタム絵文字リアクションだったら絵文字情報も送る
 	const decodedReaction = decodeReaction(reaction);

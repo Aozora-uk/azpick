@@ -73,7 +73,7 @@
 				<FormSection>
 					<template #label>Misskey</template>
 					<div class="_formLinks">
-						<FormLink to="https://github.com/misskey-dev/misskey" external>
+						<FormLink to="https://github.com/atsu1125/misskey-v12" external>
 							<template #icon><i class="fas fa-code"></i></template>
 							{{ i18n.ts._aboutMisskey.source }}
 							<template #suffix>GitHub</template>

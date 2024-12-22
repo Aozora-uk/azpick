@@ -42,7 +42,7 @@ const fetching = ref(true);
 let key = $ref(0);
 
 const tick = () => {
-	os.api('federation/instances', {
+	os.apiGet('federation/instances', {
 		sort: '+lastCommunicatedAt',
 		limit: 30,
 	}).then(res => {

@@ -2,7 +2,7 @@
 <transition :name="$store.state.animation ? 'popup' : ''" appear @after-leave="emit('closed')">
 	<div v-if="showing" class="fxxzrfni _popup _shadow" :style="{ zIndex, top: top + 'px', left: left + 'px' }" @mouseover="() => { emit('mouseover'); }" @mouseleave="() => { emit('mouseleave'); }">
 		<div v-if="user != null" class="info">
-			<div class="banner" :style="user.bannerUrl ? `background-image: url(${user.bannerUrl})` : ''">
+			<div class="banner" :style="user.bannerUrl ? `background-image: url(${defaultStore.state.disableShowingAnimatedImages ? getStaticImageUrl(user.bannerUrl) : user.bannerUrl})` : ''">
 				<span v-if="$i && $i.id != user.id && user.isFollowed" class="followed">{{ $ts.followsYou }}</span>
 			</div>
 			<MkAvatar class="avatar" :user="user" :disable-preview="true" :show-indicator="true"/>
@@ -40,6 +40,8 @@ import * as misskey from 'misskey-js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import { userPage } from '@/filters/user';
 import * as os from '@/os';
+import { getStaticImageUrl } from '@/scripts/get-static-image-url';
+import { defaultStore } from '@/store.js';
 
 const props = defineProps<{
 	showing: boolean;

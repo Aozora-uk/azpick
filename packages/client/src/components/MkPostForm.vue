@@ -218,11 +218,16 @@ const maxTextLength = $computed((): number => {
 	return instance ? instance.maxNoteTextLength : 1000;
 });
 
+const cwLength = $computed((): number => {
+	return length(cw.trim());
+});
+
 const canPost = $computed((): boolean => {
 	return !posting &&
 		(1 <= textLength || 1 <= files.length || !!poll || !!props.renote) &&
 		(textLength <= maxTextLength) &&
-		(!poll || poll.choices.length >= 2);
+		(!poll || poll.choices.length >= 2) &&
+		(!useCw || (useCw && cw && 1 <= cwLength));
 });
 
 const withHashtags = $computed(defaultStore.makeGetterSetter('postFormWithHashtags'));
@@ -273,6 +278,10 @@ if (props.channel) {
 	localOnly = true; // TODO: チャンネルが連合するようになった折には消す
 }
 
+if ($i && $i.isSilenced && visibility === 'public') {
+	visibility = 'home';
+}
+
 // 公開以外へのリプライ時は元の公開範囲を引き継ぐ
 if (props.reply && ['home', 'followers', 'specified'].includes(props.reply.visibility)) {
 	visibility = props.reply.visibility;
@@ -311,6 +320,7 @@ function watchForDraft() {
 	watch($$(files), () => saveDraft(), { deep: true });
 	watch($$(visibility), () => saveDraft());
 	watch($$(localOnly), () => saveDraft());
+	watch($$(quoteId), () => saveDraft());
 }
 
 function checkMissingMention() {
@@ -323,8 +333,8 @@ function checkMissingMention() {
 				return;
 			}
 		}
-		hasNotSpecifiedMentions = false;
 	}
+	hasNotSpecifiedMentions = false;
 }
 
 function addMissingMention() {
@@ -402,12 +412,16 @@ function setVisibility() {
 	os.popup(defineAsyncComponent(() => import('@/components/MkVisibilityPicker.vue')), {
 		currentVisibility: visibility,
 		currentLocalOnly: localOnly,
+		isSilenced: $i?.isSilenced,
 		src: visibilityButton,
 	}, {
 		changeVisibility: v => {
 			visibility = v;
 			if (defaultStore.state.rememberNoteVisibility) {
 				defaultStore.set('visibility', visibility);
+			}
+			if ($i && $i.isSilenced && visibility === 'public') {
+				visibility = 'home';
 			}
 		},
 		changeLocalOnly: v => {
@@ -502,9 +516,9 @@ function onDragover(ev) {
 		switch (ev.dataTransfer.effectAllowed) {
 			case 'all':
 			case 'uninitialized':
-			case 'copy': 
-			case 'copyLink': 
-			case 'copyMove': 
+			case 'copy':
+			case 'copyLink':
+			case 'copyMove':
 				ev.dataTransfer.dropEffect = 'copy';
 				break;
 			case 'linkMove':
@@ -560,6 +574,8 @@ function saveDraft() {
 			localOnly: localOnly,
 			files: files,
 			poll: poll,
+			visibleUserIds: visibility === 'specified' ? visibleUsers.map(x => x.id) : undefined,
+			quoteId: quoteId,
 		},
 	};
 
@@ -704,6 +720,12 @@ onMounted(() => {
 				if (draft.data.poll) {
 					poll = draft.data.poll;
 				}
+				if (draft.data.visibleUserIds) {
+					os.api('users/show', { userIds: draft.data.visibleUserIds }).then(users => {
+						users.forEach(u => pushVisibleUser(u));
+					});
+				}
+				quoteId = draft.data.quoteId;
 			}
 		}
 
@@ -724,6 +746,11 @@ onMounted(() => {
 			}
 			visibility = init.visibility;
 			localOnly = init.localOnly;
+			if (init.visibleUserIds) {
+				os.api('users/show', { userIds: init.visibleUserIds }).then(users => {
+					users.forEach(u => pushVisibleUser(u));
+				});
+			}
 			quoteId = init.renote ? init.renote.id : null;
 			disableRightClick = init.disableRightClick != null;
 		}
@@ -802,7 +829,7 @@ onMounted(() => {
 					margin-left: 0 !important;
 				}
 			}
-			
+
 			> .local-only {
 				margin: 0 0 0 12px;
 				opacity: 0.7;

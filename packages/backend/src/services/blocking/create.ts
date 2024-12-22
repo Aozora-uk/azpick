@@ -38,6 +38,10 @@ export default async function(blocker: User, blockee: User) {
 		const content = renderActivity(renderBlock(blocking));
 		deliver(blocker, content, blockee.inbox);
 	}
+
+	if (Users.isLocalUser(blockee)) {
+		publishUserEvent(blockee.id, 'block', blocker);
+	}
 }
 
 async function cancelRequest(follower: User, followee: User) {
@@ -128,6 +132,12 @@ async function unFollow(follower: User, followee: User) {
 	if (Users.isLocalUser(follower) && Users.isRemoteUser(followee)) {
 		const content = renderActivity(renderUndo(renderFollow(follower, followee), follower));
 		deliver(follower, content, followee.inbox);
+	}
+
+	// リモートにフォローをされていたらRejectFollow送信
+	if (Users.isLocalUser(followee) && Users.isRemoteUser(follower)) {
+		const content = renderActivity(renderReject(renderFollow(follower, followee), followee));
+		deliver(followee, content, follower.inbox);
 	}
 }
 

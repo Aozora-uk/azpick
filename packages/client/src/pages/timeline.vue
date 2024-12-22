@@ -10,16 +10,24 @@
 			<XTutorial v-if="$store.reactiveState.tutorial.value != -1" class="tutorial _block"/>
 			<XPostForm v-if="$store.reactiveState.showFixedPostForm.value" class="post-form _block" fixed/>
 
-			<div v-if="queue > 0 && $store.state.newNoteRecivedNotificationBehavior === 'default'" class="new"><button class="_buttonPrimary" @click="top()"><i class="fas fa-arrow-up"></i>{{ i18n.ts.newNoteRecived }}</button></div>
-			<div v-if="queue > 0 && $store.state.newNoteRecivedNotificationBehavior === 'count'" class="new"><button class="_buttonPrimary" @click="top()"><i class="fas fa-arrow-up"></i><I18n :src="i18n.ts.newNoteRecivedCount" text-tag="span"><template #n>{{ queue }}</template></I18n></button></div>
-			<div class="tl _block">
-				<XTimeline
-					ref="tl" :key="src"
-					class="tl"
-					:src="src"
-					:sound="true"
-					@queue="queueUpdated"
-				/>
+			<div v-if="queue > 0" class="new"><button class="_buttonPrimary" @click="top()">{{ i18n.ts.newNoteRecived }}</button></div>
+			<div>
+				<div v-if="((src === 'local' || src === 'social') && !isLocalTimelineAvailable) || (src === 'media' && !isMediaTimelineAvailable) || (src === 'personal' && !isPersonalTimelineAvailable) || (src === 'limited' && !isLimitedTimelineAvailable) || (src === 'global' && !isGlobalTimelineAvailable)" class="iwaalbte">
+					<p>
+						<i class="fas fa-minus-circle"></i>
+						{{ i18n.ts.disabledTimelineTitle }}
+					</p>
+					<p class="desc">{{ i18n.ts.disabledTimelineDescription }}</p>
+				</div>
+				<div v-else class="tl _block">
+					<XTimeline
+						ref="tl" :key="src"
+						class="tl"
+						:src="src"
+						:sound="true"
+						@queue="queueUpdated"
+					/>
+				</div>
 			</div>
 		</div>
 	</MkSpacer>
@@ -46,8 +54,11 @@ let includeTypes = $ref<string[] | null>(null);
 
 const XTutorial = defineAsyncComponent(() => import('./timeline.tutorial.vue'));
 
-const isLocalTimelineAvailable = !instance.disableLocalTimeline || ($i != null && ($i.isModerator || $i.isAdmin));
-const isGlobalTimelineAvailable = !instance.disableGlobalTimeline || ($i != null && ($i.isModerator || $i.isAdmin));
+const isMediaTimelineAvailable = (!instance.disableLocalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableMTL && defaultStore.state.enableLTL;
+const isLocalTimelineAvailable = (!instance.disableLocalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableLTL;
+const isGlobalTimelineAvailable = (!instance.disableGlobalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableGTL;
+const isPersonalTimelineAvailable = $i != null && defaultStore.state.enablePTL;
+const isLimitedTimelineAvailable = $i != null && defaultStore.state.enableLimitedTL;
 const keymap = {
 	't': focus,
 };
@@ -100,20 +111,11 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
-function saveSrc(newSrc: 'home' | 'local' | 'social' | 'global'): void {
+function saveSrc(newSrc: 'home' | 'local' | 'social' | 'global' | 'limited' | 'media' | 'personal'): void {
 	defaultStore.set('tl', {
 		...defaultStore.state.tl,
 		src: newSrc,
 	});
-}
-
-async function timetravel(): Promise<void> {
-	const { canceled, result: date } = await os.inputDate({
-		title: i18n.ts.date,
-	});
-	if (canceled) return;
-
-	tlComponent.timetravel(date);
 }
 
 function focus(): void {
@@ -127,7 +129,6 @@ const headerTabs = $computed(() => [{
 	title: i18n.ts._timelines.home,
 	icon: 'fas fa-home',
 	iconOnly: true,
-	onClick: top,
 }, ...(isLocalTimelineAvailable ? [{
 	key: 'local',
 	title: i18n.ts._timelines.local,
@@ -139,13 +140,11 @@ const headerTabs = $computed(() => [{
 	title: i18n.ts._timelines.social,
 	icon: 'fas fa-share-alt',
 	iconOnly: true,
-	onClick: top,
 }] : []), ...(isGlobalTimelineAvailable ? [{
 	key: 'global',
 	title: i18n.ts._timelines.global,
 	icon: 'fas fa-globe',
 	iconOnly: true,
-	onClick: top,
 }] : []), {
 	icon: 'fas fa-list-ul',
 	title: i18n.ts.lists,
@@ -165,7 +164,7 @@ const headerTabs = $computed(() => [{
 
 definePageMetadata(computed(() => ({
 	title: i18n.ts.timeline,
-	icon: src === 'local' ? 'fas fa-comments' : src === 'social' ? 'fas fa-share-alt' : src === 'global' ? 'fas fa-globe' : 'fas fa-home',
+	icon: src === 'local' ? 'fas fa-comments' : src === 'social' ? 'fas fa-share-alt' : src === 'global' ? 'fas fa-globe' : src === 'limited' ? 'fas fa-unlock' :src === 'media' ? 'fas fa-file' :src === 'personal' ? 'fas fa-book' : 'fas fa-home',
 })));
 </script>
 
@@ -197,6 +196,15 @@ definePageMetadata(computed(() => ({
 		background: var(--bg);
 		border-radius: var(--radius);
 		overflow: clip;
+	}
+}
+.iwaalbte {
+	text-align: center;
+	> p {
+		margin: 16px;
+		&.desc {
+			font-size: 14px;
+		}
 	}
 }
 </style>

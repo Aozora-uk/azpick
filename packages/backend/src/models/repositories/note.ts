@@ -10,6 +10,7 @@ import { convertLegacyReaction, convertLegacyReactions, decodeReaction } from '@
 import { NoteReaction } from '@/models/entities/note-reaction.js';
 import { aggregateNoteEmojis, populateEmojis, prefetchEmojis } from '@/misc/populate-emojis.js';
 import { db } from '@/db/postgre.js';
+import { sanitizeUrl } from '@/misc/sanitize-url.js';
 
 async function hideNote(packedNote: Packed<'Note'>, meId: User['id'] | null) {
 	// TODO: isVisibleForMe を使うようにしても良さそう(型違うけど)
@@ -225,6 +226,7 @@ export const NoteRepository = db.getRepository(Note).extend({
 		const packed: Packed<'Note'> = await awaitAll({
 			id: note.id,
 			createdAt: note.createdAt.toISOString(),
+			updatedAt: note.updatedAt?.toISOString(),
 			userId: note.userId,
 			user: Users.pack(note.user ?? note.userId, me, {
 				detail: false,
@@ -250,8 +252,8 @@ export const NoteRepository = db.getRepository(Note).extend({
 				name: channel.name,
 			} : undefined,
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
-			uri: note.uri || undefined,
-			url: note.url || undefined,
+			uri: sanitizeUrl(note.uri) || undefined,
+			url: sanitizeUrl(note.url) || undefined,
 
 			...(opts.detail ? {
 				reply: note.replyId ? this.pack(note.reply || note.replyId, me, {

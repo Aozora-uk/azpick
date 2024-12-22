@@ -10,12 +10,15 @@ export async function deliverQuestionUpdate(noteId: Note['id']) {
 	const note = await Notes.findOneBy({ id: noteId });
 	if (note == null) throw new Error('note not found');
 
+	if (note.localOnly) return;
+
 	const user = await Users.findOneBy({ id: note.userId });
 	if (user == null) throw new Error('note not found');
 
 	if (Users.isLocalUser(user)) {
 		const content = renderActivity(renderUpdate(await renderNote(note, false), user));
+		const retryable = true;
 		deliverToFollowers(user, content);
-		deliverToRelays(user, content);
+		deliverToRelays(user, content, retryable);
 	}
 }

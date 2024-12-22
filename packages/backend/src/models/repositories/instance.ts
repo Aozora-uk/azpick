@@ -2,6 +2,7 @@ import { db } from '@/db/postgre.js';
 import { Instance } from '@/models/entities/instance.js';
 import { Packed } from '@/misc/schema.js';
 import { fetchMeta } from '@/misc/fetch-meta.js';
+import { sanitizeUrl } from '@/misc/sanitize-url.js';
 
 export const InstanceRepository = db.getRepository(Instance).extend({
 	async pack(
@@ -20,7 +21,7 @@ export const InstanceRepository = db.getRepository(Instance).extend({
 			lastCommunicatedAt: instance.lastCommunicatedAt.toISOString(),
 			isNotResponding: instance.isNotResponding,
 			isSuspended: instance.isSuspended,
-			isBlocked: meta.blockedHosts.includes(instance.host),
+			isBlocked: meta.blockedHosts.some(x => instance.host.endsWith(x)),
 			softwareName: instance.softwareName,
 			softwareVersion: instance.softwareVersion,
 			openRegistrations: instance.openRegistrations,
@@ -28,10 +29,12 @@ export const InstanceRepository = db.getRepository(Instance).extend({
 			description: instance.description,
 			maintainerName: instance.maintainerName,
 			maintainerEmail: instance.maintainerEmail,
-			iconUrl: instance.iconUrl,
-			faviconUrl: instance.faviconUrl,
+			iconUrl: sanitizeUrl(instance.iconUrl) ?? null,
+			faviconUrl: sanitizeUrl(instance.faviconUrl) ?? null,
 			themeColor: instance.themeColor,
 			infoUpdatedAt: instance.infoUpdatedAt ? instance.infoUpdatedAt.toISOString() : null,
+			latestStatus: instance.latestStatus,
+			latestRequestReceivedAt: instance.latestRequestReceivedAt ? instance.latestRequestReceivedAt.toISOString() : null,
 		};
 	},
 

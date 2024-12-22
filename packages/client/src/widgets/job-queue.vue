@@ -53,6 +53,7 @@ import { stream } from '@/stream';
 import number from '@/filters/number';
 import * as sound from '@/scripts/sound';
 import * as os from '@/os';
+import { ColdDeviceStorage } from '@/store';
 
 const name = 'jobQueue';
 
@@ -97,7 +98,11 @@ const current = reactive({
 	},
 });
 const prev = reactive({} as typeof current);
-const jammedSound = sound.setVolume(sound.getAudio('syuilo/queue-jammed'), 1);
+let jammedAudioBuffer: AudioBuffer | null = $ref(null);
+let jammedSoundNodePlaying: boolean = $ref(false);
+if (ColdDeviceStorage.get('sound_masterVolume')) {
+	sound.loadAudio('syuilo/queue-jammed').then(buf => jammedAudioBuffer = buf);
+}
 
 for (const domain of ['inbox', 'deliver']) {
 	prev[domain] = JSON.parse(JSON.stringify(current[domain]));
@@ -111,8 +116,13 @@ const onStats = (stats) => {
 		current[domain].waiting = stats[domain].waiting;
 		current[domain].delayed = stats[domain].delayed;
 
-		if (current[domain].waiting > 0 && widgetProps.sound && jammedSound.paused) {
-			jammedSound.play();
+		if (current[domain].waiting > 0 && widgetProps.sound && jammedAudioBuffer && !jammedSoundNodePlaying) {
+			const soundNode = sound.createSourceNode(jammedAudioBuffer, 1);
+			if (soundNode) {
+				jammedSoundNodePlaying = true;
+				soundNode.onended = () => jammedSoundNodePlaying = false;
+				soundNode.start();
+			}
 		}
 	}
 };

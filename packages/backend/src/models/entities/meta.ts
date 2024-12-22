@@ -37,6 +37,11 @@ export class Meta {
 	})
 	public maintainerEmail: string | null;
 
+	@Column('varchar', {
+		length: 1024, nullable: true,
+	})
+	public emailToReceiveAbuseReport: string | null;
+
 	@Column('boolean', {
 		default: false,
 	})
@@ -76,6 +81,11 @@ export class Meta {
 		length: 256, array: true, default: '{}',
 	})
 	public blockedHosts: string[];
+
+	@Column('varchar', {
+		length: 256, array: true, default: '{}',
+	})
+	public blockedEmailDomains: string[];
 
 	@Column('varchar', {
 		length: 512, array: true, default: '{/featured,/channels,/explore,/pages,/about-misskey}',
@@ -465,4 +475,14 @@ export class Meta {
 		default: true,
 	})
 	public enableActiveEmailValidation: boolean;
+
+	@Column('boolean', {
+		default: true,
+	})
+	public doNotSendNotificationEmailsForAbuseReport: boolean;
+
+	@Column('boolean', {
+		default: false,
+	})
+	public doNotSendNotificationEmailsForAbuseReportToModerator: boolean;
 }

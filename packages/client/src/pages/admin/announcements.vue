@@ -21,6 +21,9 @@
 					</div>
 				</div>
 			</section>
+			<MkButton class="button" @click="more()">
+				<i class="fas fa-rotate-right"></i>{{ i18n.ts.more }}
+			</MkButton>
 		</div>
 	</MkSpacer>
 </MkStickyContainer>
@@ -69,6 +72,7 @@ function save(announcement) {
 				type: 'success',
 				text: i18n.ts.saved,
 			});
+			refresh();
 		}).catch(err => {
 			os.alert({
 				type: 'error',
@@ -88,6 +92,18 @@ function save(announcement) {
 			});
 		});
 	}
+}
+
+function refresh() {
+	os.api('admin/announcements/list').then(announcementResponse => {
+		announcements = announcementResponse;
+	});
+}
+
+function more() {
+	os.api('admin/announcements/list', { untilId: announcements.reduce((acc, announcement) => announcement.id != null ? announcement : acc).id }).then(announcementResponse => {
+		announcements = announcements.concat(announcementResponse);
+	});
 }
 
 const headerActions = $computed(() => [{

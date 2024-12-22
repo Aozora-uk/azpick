@@ -69,8 +69,8 @@ redis:
 #  host: localhost
 #  port: 9200
 #  ssl: false
-#  user: 
-#  pass: 
+#  user:
+#  pass:
 
 #   ┌───────────────┐
 #───┘ ID generation └───────────────────────────────────────────
@@ -92,6 +92,11 @@ id: 'aid'
 
 #   ┌─────────────────────┐
 #───┘ Other configuration └─────────────────────────────────────
+# Whether Disable Antenna
+#disableAntenna: true
+
+# Whether Disable Search
+#disableSearch: true
 
 # Whether disable HSTS
 #disableHsts: true
@@ -108,8 +113,8 @@ id: 'aid'
 # inboxJobPerSec: 16
 
 # Job attempts
-# deliverJobMaxAttempts: 12
-# inboxJobMaxAttempts: 8
+# deliverJobMaxAttempts: 17
+# inboxJobMaxAttempts: 10
 
 # IP address family used for outgoing request (ipv4, ipv6 or dual)
 #outgoingAddressFamily: ipv4
@@ -147,3 +152,12 @@ id: 'aid'
 
 # Upload or download file size limits (bytes)
 #maxFileSize: 262144000
+
+# Time to commit Chart to DB
+#chartCommitIntervalSecond: 1200
+
+# Whether Disable Remote Users Chart
+#disableChartsForRemoteUser: true
+
+# Whether Disable Url Preview
+#disableUrlPreview: true

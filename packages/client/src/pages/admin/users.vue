@@ -21,6 +21,8 @@
 							<option value="moderator">{{ i18n.ts.moderator }}</option>
 							<option value="silenced">{{ i18n.ts.silence }}</option>
 							<option value="suspended">{{ i18n.ts.suspend }}</option>
+							<option value="bot">{{ i18n.ts.bot }}</option>
+							<option value="deleted">{{ i18n.ts.deleted }}</option>
 						</MkSelect>
 						<MkSelect v-model="origin" style="flex: 1;">
 							<template #label>{{ i18n.ts.instance }}</template>
@@ -154,7 +156,7 @@ definePageMetadata(computed(() => ({
 				}
 			}
 		}
-	
+
 		> .users {
 			margin-top: var(--margin);
 			display: grid;

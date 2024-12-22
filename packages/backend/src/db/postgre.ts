@@ -70,6 +70,7 @@ import { PasswordResetRequest } from '@/models/entities/password-reset-request.j
 import { UserPending } from '@/models/entities/user-pending.js';
 import { Webhook } from '@/models/entities/webhook.js';
 import { UserIp } from '@/models/entities/user-ip.js';
+import { AbuseReportResolver } from '@/models/entities/abuse-report-resolver.js';
 
 import { entities as charts } from '@/services/chart/entities.js';
 import { envOption } from '../env.js';
@@ -175,6 +176,7 @@ export const entities = [
 	UserPending,
 	Webhook,
 	UserIp,
+	AbuseReportResolver,
 	...charts,
 ];
 
@@ -188,7 +190,7 @@ export const db = new DataSource({
 	password: config.db.pass,
 	database: config.db.db,
 	extra: {
-		statement_timeout: 1000 * 10,
+		statement_timeout: 30000 * 10,
 		...config.db.extra,
 	},
 	synchronize: process.env.NODE_ENV === 'test',

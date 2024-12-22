@@ -77,6 +77,24 @@ export const meta = {
 			code: 'YOU_HAVE_BEEN_BLOCKED',
 			id: 'b390d7e1-8a5e-46ed-b625-06271cafd3d3',
 		},
+
+		cannotRenoteDueToVisibility: {
+			message: 'You can not Renote due to target visibility.',
+			code: 'CANNOT_RENOTE_DUE_TO_VISIBILITY',
+			id: 'be9529e9-fe72-4de0-ae43-0b363c4938af',
+		},
+
+		noSuchFile: {
+			message: 'Some files are not found.',
+			code: 'NO_SUCH_FILE',
+			id: 'b6992544-63e7-67f0-fa7f-32444b1b5306',
+		},
+
+		contentRequired: {
+			message: 'Content required. You need to set text, fileIds, renoteId or poll.',
+			code: 'CONTENT_REQUIRED',
+			id: '6f57e42b-c348-439b-bc45-993995cc515a',
+		},
 	},
 } as const;
 
@@ -88,7 +106,13 @@ export const paramDef = {
 			type: 'string', format: 'misskey:id',
 		} },
 		text: { type: 'string', maxLength: MAX_NOTE_TEXT_LENGTH, nullable: true },
-		cw: { type: 'string', nullable: true, maxLength: 100 },
+		cw: {
+			type: 'string',
+			nullable: true,
+			minLength: 1,
+			maxLength: 100,
+			pattern: '[^\\s]+',
+		},
 		localOnly: { type: 'boolean', default: false },
 		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
@@ -131,34 +155,33 @@ export const paramDef = {
 			required: ['choices'],
 		},
 	},
-	anyOf: [
-		{
-			// (re)note with text, files and poll are optional
-			properties: {
-				text: { type: 'string', minLength: 1, maxLength: MAX_NOTE_TEXT_LENGTH, nullable: false },
+	if: {
+		properties: {
+			renoteId: {
+				type: 'null',
 			},
-			required: ['text'],
-		},
-		{
-			// (re)note with files, text and poll are optional
-			required: ['fileIds'],
-		},
-		{
-			// (re)note with files, text and poll are optional
-			required: ['mediaIds'],
-		},
-		{
-			// (re)note with poll, text and files are optional
-			properties: {
-				poll: { type: 'object', nullable: false },
+			fileIds: {
+				type: 'null',
 			},
-			required: ['poll'],
+			mediaIds: {
+				type: 'null',
+			},
+			poll: {
+				type: 'null',
+			},
 		},
-		{
-			// pure renote
-			required: ['renoteId'],
+	},
+	then: {
+		properties: {
+			text: {
+				type: 'string',
+				minLength: 1,
+				maxLength: MAX_NOTE_TEXT_LENGTH,
+				pattern: '[^\\s]+',
+			},
 		},
-	],
+		required: ['text'],
+	},
 } as const;
 
 // eslint-disable-next-line import/no-default-export
@@ -181,6 +204,9 @@ export default define(meta, paramDef, async (ps, user) => {
 			.orderBy('array_position(ARRAY[:...fileIds], "id"::text)')
 			.setParameters({ fileIds })
 			.getMany();
+		if (files.length !== fileIds.length) {
+			throw new ApiError(meta.errors.noSuchFile);
+		}
 	}
 
 	let renote: Note | null = null;
@@ -190,7 +216,7 @@ export default define(meta, paramDef, async (ps, user) => {
 
 		if (renote == null) {
 			throw new ApiError(meta.errors.noSuchRenoteTarget);
-		} else if (renote.renoteId && !renote.text && !renote.fileIds && !renote.hasPoll) {
+		} else if (renote.renoteId && !renote.text && renote.fileIds.length === 0 && !renote.hasPoll) {
 			throw new ApiError(meta.errors.cannotReRenote);
 		}
 
@@ -204,6 +230,15 @@ export default define(meta, paramDef, async (ps, user) => {
 				throw new ApiError(meta.errors.youHaveBeenBlocked);
 			}
 		}
+
+		// Renote visibility Check
+		if (renote.visibility === 'followers' && renote.userId !== user.id) {
+			// 他人のfollowers noteはreject
+			throw new ApiError(meta.errors.cannotRenoteDueToVisibility);
+		} else if (renote.visibility === 'specified') {
+			// specified / direct noteはreject
+			throw new ApiError(meta.errors.cannotRenoteDueToVisibility);
+		}
 	}
 
 	let reply: Note | null = null;
@@ -213,7 +248,7 @@ export default define(meta, paramDef, async (ps, user) => {
 
 		if (reply == null) {
 			throw new ApiError(meta.errors.noSuchReplyTarget);
-		} else if (reply.renoteId && !reply.text && !reply.fileIds && !reply.hasPoll) {
+		} else if (reply.renoteId && !reply.text && reply.fileIds.length === 0 && !reply.hasPoll) {
 			throw new ApiError(meta.errors.cannotReplyToPureRenote);
 		}
 
@@ -237,6 +272,10 @@ export default define(meta, paramDef, async (ps, user) => {
 		} else if (typeof ps.poll.expiredAfter === 'number') {
 			ps.poll.expiresAt = Date.now() + ps.poll.expiredAfter;
 		}
+	}
+
+	if (renote && !(ps.text || files.length || ps.poll) && (ps.cw || reply)) {
+		throw new ApiError(meta.errors.contentRequired);
 	}
 
 	let channel: Channel | null = null;

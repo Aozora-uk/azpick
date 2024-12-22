@@ -8,6 +8,7 @@ import * as os from '@/os';
 import copyToClipboard from '@/scripts/copy-to-clipboard';
 import { url } from '@/config';
 import { noteActions } from '@/store';
+import { defaultStore } from '@/store';
 
 export function getNoteMenu(props: {
 	note: misskey.entities.Note;
@@ -26,10 +27,12 @@ export function getNoteMenu(props: {
 
 	const appearNote = isRenote ? props.note.renote as misskey.entities.Note : props.note;
 
+	const enableSudo = defaultStore.state.enableSudo;
+
 	function del(): void {
 		os.confirm({
 			type: 'warning',
-			text: i18n.ts.noteDeleteConfirm,
+			text: (appearNote.userId == $i.id) ? i18n.ts.noteDeleteConfirm : i18n.ts.noteDeleteAsAdminConfirm,
 		}).then(({ canceled }) => {
 			if (canceled) return;
 
@@ -78,7 +81,7 @@ export function getNoteMenu(props: {
 	}
 
 	function copyLink(): void {
-		copyToClipboard(`${url}/notes/${appearNote.id}`);
+		copyToClipboard(appearNote.url || appearNote.uri || `${url}/notes/${appearNote.id}`);
 		os.success();
 	}
 
@@ -297,7 +300,7 @@ export function getNoteMenu(props: {
 				}]
 			: []
 			),
-			...(appearNote.userId === $i.id || $i.isModerator || $i.isAdmin ? [
+			...(appearNote.userId === $i.id || (($i.isModerator || $i.isAdmin) && enableSudo) ? [
 				null,
 				appearNote.userId === $i.id ? {
 					icon: 'fas fa-edit',
@@ -306,7 +309,7 @@ export function getNoteMenu(props: {
 				} : undefined,
 				{
 					icon: 'fas fa-trash-alt',
-					text: i18n.ts.delete,
+					text: (appearNote.userId == $i.id) ? i18n.ts.delete : i18n.ts.deleteAsAdmin,
 					danger: true,
 					action: del,
 				}]

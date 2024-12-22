@@ -7,6 +7,8 @@ export const meta = {
 	tags: ['notes'],
 
 	requireCredential: false,
+	allowGet: true,
+	cacheSec: 60 * 60,
 
 	res: {
 		type: 'array',

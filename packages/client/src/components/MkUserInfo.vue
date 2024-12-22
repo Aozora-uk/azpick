@@ -1,11 +1,12 @@
 <template>
 <div class="_panel vjnjpkug">
-	<div class="banner" :style="user.bannerUrl ? `background-image: url(${user.bannerUrl})` : ''"></div>
+	<div class="banner" :style="user.bannerUrl ? `background-image: url(${defaultStore.state.disableShowingAnimatedImages ? getStaticImageUrl(user.bannerUrl) : user.bannerUrl})` : ''"></div>
 	<MkAvatar class="avatar" :user="user" :disable-preview="true" :show-indicator="true"/>
 	<div class="title">
 		<MkA class="name" :to="userPage(user)"><MkUserName :user="user" :nowrap="false"/></MkA>
 		<p class="username"><MkAcct :user="user"/></p>
 	</div>
+	<span v-if="$i && $i.id !== user.id && user.isFollowed" class="followed">{{ $ts.followsYou }}</span>
 	<div class="description">
 		<div v-if="user.description" class="mfm">
 			<Mfm :text="user.description" :author="user" :i="$i" :custom-emojis="user.emojis"/>
@@ -32,6 +33,8 @@ import * as misskey from 'misskey-js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import { userPage } from '@/filters/user';
 import { i18n } from '@/i18n';
+import { getStaticImageUrl } from '@/scripts/get-static-image-url';
+import { defaultStore } from '@/store.js';
 
 defineProps<{
 	user: misskey.entities.UserDetailed;
@@ -82,6 +85,17 @@ defineProps<{
 		}
 	}
 
+	> .followed {
+		position: absolute;
+		top: 12px;
+		left: 12px;
+		padding: 4px 8px;
+		color: #fff;
+		background: rgba(0, 0, 0, 0.7);
+		font-size: 0.7em;
+		border-radius: 6px;
+	}
+
 	> .description {
 		padding: 16px;
 		font-size: 0.8em;
@@ -90,7 +104,7 @@ defineProps<{
 		> .mfm {
 			display: -webkit-box;
 			-webkit-line-clamp: 3;
-			-webkit-box-orient: vertical;  
+			-webkit-box-orient: vertical;
 			overflow: hidden;
 		}
 	}

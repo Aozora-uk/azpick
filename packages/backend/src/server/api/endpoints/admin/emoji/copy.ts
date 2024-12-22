@@ -6,6 +6,7 @@ import { DriveFile } from '@/models/entities/drive-file.js';
 import { uploadFromUrl } from '@/services/drive/upload-from-url.js';
 import { publishBroadcastStream } from '@/services/stream.js';
 import { db } from '@/db/postgre.js';
+import { IsNull } from 'typeorm';
 
 export const meta = {
 	tags: ['admin'],
@@ -18,6 +19,11 @@ export const meta = {
 			message: 'No such emoji.',
 			code: 'NO_SUCH_EMOJI',
 			id: 'e2785b66-dca3-4087-9cac-b93c541cc425',
+		},
+		duplicateName: {
+			message: 'Duplicate name.',
+			code: 'DUPLICATE_NAME',
+			id: 'f7a3462c-4e6e-4069-8421-b9bd4f4c3975',
 		},
 	},
 
@@ -48,6 +54,15 @@ export default define(meta, paramDef, async (ps, me) => {
 
 	if (emoji == null) {
 		throw new ApiError(meta.errors.noSuchEmoji);
+	}
+
+	let existemojis = await Emojis.findOneBy({
+		host: IsNull(),
+		name: emoji.name,
+	});
+
+	if (existemojis != null) {
+		throw new ApiError(meta.errors.duplicateName);
 	}
 
 	let driveFile: DriveFile;

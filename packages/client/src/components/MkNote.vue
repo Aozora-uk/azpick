@@ -21,7 +21,7 @@
 		</MkA>
 		<div class="info">
 			<button ref="renoteTime" class="_button time" @click="showRenoteMenu()">
-				<i v-if="isMyRenote" class="fas fa-ellipsis-h dropdownIcon"></i>
+				<i v-if="isMyRenote || ($i && ($i.isModerator || $i.isAdmin) && enableSudo)" class="fas fa-ellipsis-h dropdownIcon"></i>
 				<MkTime :time="note.createdAt"/>
 			</button>
 			<MkVisibility :note="note"/>
@@ -166,17 +166,23 @@ const reactButton = ref<HTMLElement>();
 let appearNote = $computed(() => isRenote ? note.renote as misskey.entities.Note : note);
 const isMyRenote = $i && ($i.id === note.userId);
 const showContent = ref(false);
+const urls = appearNote.text ? extractUrlFromMfm(mfm.parse(appearNote.text)) : null;
+const enableMfm = ref(defaultStore.state.enableMfm);
 const isLong = (appearNote.cw == null && appearNote.text != null && (
+	(appearNote.text.includes('$[x3') && enableMfm) ||
+	(appearNote.text.includes('$[x4') && enableMfm) ||
 	(appearNote.text.split('\n').length > 9) ||
-	(appearNote.text.length > 500)
+	(appearNote.text.length > 500) ||
+	(appearNote.files.length >= 5) ||
+	(urls && urls.length >= 4)
 ));
 const collapsed = ref(appearNote.cw == null && isLong);
 const isDeleted = ref(false);
 const muted = ref(checkWordMute(appearNote, $i, defaultStore.state.mutedWords));
 const translation = ref(null);
 const translating = ref(false);
-const urls = appearNote.text ? extractUrlFromMfm(mfm.parse(appearNote.text)) : null;
 const showTicker = (defaultStore.state.instanceTicker === 'always') || (defaultStore.state.instanceTicker === 'remote' && appearNote.user.instance);
+const enableSudo = defaultStore.state.enableSudo;
 
 const keymap = {
 	'r': () => reply(true),
@@ -192,6 +198,7 @@ const keymap = {
 useNoteCapture({
 	rootEl: el,
 	note: $$(appearNote),
+	pureNote: $$(note),
 	isDeletedRef: isDeleted,
 });
 
@@ -253,9 +260,9 @@ function menu(viaKeyboard = false): void {
 }
 
 function showRenoteMenu(viaKeyboard = false): void {
-	if (!isMyRenote) return;
+	if (!isMyRenote && !($i && ($i.isModerator || $i.isAdmin) && enableSudo)) return;
 	os.popupMenu([{
-		text: i18n.ts.unrenote,
+		text: (isMyRenote) ? i18n.ts.unrenote : i18n.ts.unrenoteAsAdmin,
 		icon: 'fas fa-trash-alt',
 		danger: true,
 		action: () => {

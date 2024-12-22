@@ -19,6 +19,12 @@
 							<MkNumberDiff v-if="notesComparedToThePrevDay != null" v-tooltip="i18n.ts.dayOverDayChanges" class="diff" :value="notesComparedToThePrevDay"><template #before>(</template><template #after>)</template></MkNumberDiff>
 						</div>
 					</div>
+					<div class="number _panel">
+						<div class="label">Current Online Users</div>
+						<div class="value _monospace">
+							{{ number(onlineUsersCount) }}
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -112,7 +118,7 @@
 				<div class="body">
 					<MkTagCloud v-if="activeInstances">
 						<li v-for="instance in activeInstances">
-							<a @click.prevent="onInstanceClick(instance)">
+							<a v-if="instance.iconUrl" @click.prevent="onInstanceClick(instance)">
 								<img style="width: 32px;" :src="instance.iconUrl">
 							</a>
 						</li>
@@ -199,6 +205,7 @@ Chart.register(
 const rootEl = $ref<HTMLElement>();
 const chartEl = $ref<HTMLCanvasElement>(null);
 let stats: any = $ref(null);
+let onlineUsersCount = $ref();
 let serverInfo: any = $ref(null);
 let topSubInstancesForPie: any = $ref(null);
 let topPubInstancesForPie: any = $ref(null);
@@ -405,6 +412,10 @@ onMounted(async () => {
 		});
 	});
 
+	os.apiGet('get-online-users-count').then(res => {
+		onlineUsersCount = res.count;
+	});
+
 	os.apiGet('charts/federation', { limit: 2, span: 'day' }).then(chart => {
 		federationPubActive = chart.pubActive[0];
 		federationPubActiveDiff = chart.pubActive[0] - chart.pubActive[1];
@@ -442,7 +453,7 @@ onMounted(async () => {
 		newUsers = res;
 	});
 
-	os.api('federation/instances', {
+	os.api('admin/federation/instances', {
 		sort: '+lastCommunicatedAt',
 		limit: 25,
 	}).then(res => {

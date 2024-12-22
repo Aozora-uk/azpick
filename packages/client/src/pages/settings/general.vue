@@ -45,6 +45,7 @@
 	<FormSection>
 		<template #label>{{ i18n.ts.appearance }}</template>
 		<FormSwitch v-model="disableAnimatedMfm" class="_formBlock">{{ i18n.ts.disableAnimatedMfm }}</FormSwitch>
+		<FormSwitch v-model="enableMfm" class="_formBlock">{{ i18n.ts.enableMfm }}</FormSwitch>
 		<FormSwitch v-model="reduceAnimation" class="_formBlock">{{ i18n.ts.reduceUiAnimation }}</FormSwitch>
 		<FormSwitch v-model="useBlurEffect" class="_formBlock">{{ i18n.ts.useBlurEffect }}</FormSwitch>
 		<FormSwitch v-model="useBlurEffectForModal" class="_formBlock">{{ i18n.ts.useBlurEffectForModal }}</FormSwitch>
@@ -103,6 +104,8 @@
 	<FormLink to="/settings/deck" class="_formBlock">{{ i18n.ts.deck }}</FormLink>
 
 	<FormLink to="/settings/custom-css" class="_formBlock"><template #icon><i class="fas fa-code"></i></template>{{ i18n.ts.customCss }}</FormLink>
+
+	<FormLink to="/settings/timeline" class="_formBlock"><template #icon><i class="fas fa-list"></i></template>{{ i18n.ts.timeline }}</FormLink>
 </div>
 </template>
 
@@ -159,6 +162,7 @@ const squareAvatars = computed(defaultStore.makeGetterSetter('squareAvatars'));
 const aiChanMode = computed(defaultStore.makeGetterSetter('aiChanMode'));
 const useEnterToSend = computed(defaultStore.makeGetterSetter('useEnterToSend'));
 const newNoteRecivedNotificationBehavior = computed(defaultStore.makeGetterSetter('newNoteRecivedNotificationBehavior'));
+const enableMfm = computed(defaultStore.makeGetterSetter('enableMfm'));
 
 watch(lang, () => {
 	localStorage.setItem('lang', lang.value as string);

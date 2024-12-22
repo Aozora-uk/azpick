@@ -27,6 +27,9 @@ export const paramDef = {
 		blockedHosts: { type: 'array', nullable: true, items: {
 			type: 'string',
 		} },
+		blockedEmailDomains: { type: 'array', nullable: true, items: {
+			type: 'string',
+		} },
 		themeColor: { type: 'string', nullable: true, pattern: '^#[0-9a-fA-F]{6}$' },
 		mascotImageUrl: { type: 'string', nullable: true },
 		bannerUrl: { type: 'string', nullable: true },
@@ -103,6 +106,9 @@ export const paramDef = {
 		objectStorageS3ForcePathStyle: { type: 'boolean' },
 		enableIpLogging: { type: 'boolean' },
 		enableActiveEmailValidation: { type: 'boolean' },
+		doNotSendNotificationEmailsForAbuseReport: { type: 'boolean' },
+		doNotSendNotificationEmailsForAbuseReportToModerator: { type: 'boolean' },
+		emailToReceiveAbuseReport: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -136,7 +142,11 @@ export default define(meta, paramDef, async (ps, me) => {
 	}
 
 	if (Array.isArray(ps.blockedHosts)) {
-		set.blockedHosts = ps.blockedHosts.filter(Boolean);
+		set.blockedHosts = ps.blockedHosts.filter(Boolean).map(x => x.toLowerCase());
+	}
+
+	if (Array.isArray(ps.blockedEmailDomains)) {
+		set.blockedEmailDomains = ps.blockedEmailDomains.filter(Boolean).map(x => x.toLowerCase());
 	}
 
 	if (ps.themeColor !== undefined) {
@@ -433,6 +443,18 @@ export default define(meta, paramDef, async (ps, me) => {
 
 	if (ps.enableActiveEmailValidation !== undefined) {
 		set.enableActiveEmailValidation = ps.enableActiveEmailValidation;
+	}
+
+	if (ps.doNotSendNotificationEmailsForAbuseReport !== undefined) {
+		set.doNotSendNotificationEmailsForAbuseReport = ps.doNotSendNotificationEmailsForAbuseReport;
+	}
+
+	if (ps.doNotSendNotificationEmailsForAbuseReportToModerator !== undefined) {
+		set.doNotSendNotificationEmailsForAbuseReportToModerator = ps.doNotSendNotificationEmailsForAbuseReportToModerator;
+	}
+
+	if (ps.emailToReceiveAbuseReport !== undefined) {
+		set.emailToReceiveAbuseReport = ps.emailToReceiveAbuseReport;
 	}
 
 	await db.transaction(async transactionalEntityManager => {

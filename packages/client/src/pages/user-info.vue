@@ -33,7 +33,7 @@
 						<template #value><span class="_monospace">{{ user.id }}</span></template>
 					</MkKeyValue>
 					<!-- 要る？
-					<MkKeyValue v-if="ips.length > 0" :copy="user.id" oneline style="margin: 1em 0;">
+					<MkKeyValue :copy="ips[0].ip" v-if="ips.length > 0" oneline style="margin: 1em 0;">
 						<template #key>IP (recent)</template>
 						<template #value><span class="_monospace">{{ ips[0].ip }}</span></template>
 					</MkKeyValue>
@@ -42,13 +42,21 @@
 						<template #key>{{ i18n.ts.createdAt }}</template>
 						<template #value><span class="_monospace"><MkTime :time="user.createdAt" :mode="'detail'"/></span></template>
 					</MkKeyValue>
-					<MkKeyValue v-if="info" oneline style="margin: 1em 0;">
+					<MkKeyValue v-if="info && $i.isAdmin && enableSudo" oneline style="margin: 1em 0;">
 						<template #key>{{ i18n.ts.lastActiveDate }}</template>
 						<template #value><span class="_monospace"><MkTime :time="info.lastActiveDate" :mode="'detail'"/></span></template>
 					</MkKeyValue>
-					<MkKeyValue v-if="info" oneline style="margin: 1em 0;">
+					<MkKeyValue :copy="info.email" v-if="info && $i.isAdmin && enableSudo" oneline style="margin: 1em 0;">
 						<template #key>{{ i18n.ts.email }}</template>
 						<template #value><span class="_monospace">{{ info.email }}</span></template>
+					</MkKeyValue>
+					<MkKeyValue v-if="info && enableSudo" oneline style="margin: 1em 0;">
+						<template #key>Email Status</template>
+						<template v-if="$i.isAdmin && info.email && info.emailVerified" #value><span class="_monospace">Verified</span></template>
+						<template v-if="$i.isAdmin && info.email && !info.emailVerified" #value><span class="_monospace">Not Verified</span></template>
+						<template v-if="$i.isAdmin && !info.email" #value><span class="_monospace">Not Registered</span></template>
+						<template v-if="!$i.isAdmin && info.emailVerified" #value><span class="_monospace">Verified</span></template>
+						<template v-if="!$i.isAdmin && !info.emailVerified" #value><span class="_monospace">Not Verified / Not Registered</span></template>
 					</MkKeyValue>
 				</div>
 
@@ -74,7 +82,7 @@
 						</MkKeyValue>
 					</div>
 
-					<FormButton v-if="user.host != null" class="_formBlock" @click="updateRemoteUser"><i class="fas fa-sync"></i> {{ i18n.ts.updateRemoteUser }}</FormButton>
+					<FormButton v-if="user.host != null && enableSudo" class="_formBlock" @click="updateRemoteUser"><i class="fas fa-sync"></i> {{ i18n.ts.updateRemoteUser }}</FormButton>
 
 					<FormFolder class="_formBlock">
 						<template #label>Raw</template>
@@ -92,7 +100,11 @@
 				{{ i18n.ts.reflectMayTakeTime }}
 				<div class="_formBlock">
 					<FormButton v-if="user.host == null && iAmModerator" inline style="margin-right: 8px;" @click="resetPassword"><i class="fas fa-key"></i> {{ i18n.ts.resetPassword }}</FormButton>
-					<FormButton v-if="$i.isAdmin" inline danger @click="deleteAccount">{{ i18n.ts.deleteAccount }}</FormButton>
+					<FormButton v-if="user.host == null && user.twoFactorEnabled && iAmModerator" inline style="margin-right: 8px;" @click="reset2fa"><i class="fas fa-key"></i> {{ i18n.ts.reset2fa }}</FormButton>
+					<FormButton v-if="user.host == null && user.isSuspended && iAmModerator" inline danger style="margin-right: 8px;" @click="sendDeleteAccountToRemote"><i class="fas fa-trash-alt"></i> {{ i18n.ts.deleteAccountFederation }}</FormButton>
+					<FormButton v-if="$i.isAdmin" inline danger style="margin-right: 8px;" @click="deleteAccount"><i class="fas fa-trash-alt"></i> {{ i18n.ts.deleteAccount }}</FormButton>
+					<FormButton v-if="$i.isAdmin" inline danger style="margin-right: 8px;" @click="deleteAllFiles"><i class="fas fa-trash-alt"></i> {{ i18n.ts.deleteAllFiles }}</FormButton>
+					<FormButton v-if="user.host == null && iAmModerator && !suspended" inline style="margin-right: 8px;" @click="sendModNotification"><i class="fas fa-bell"></i> {{ $ts.sendModNotification }}</FormButton>
 				</div>
 				<FormTextarea v-model="moderationNote" manual-save class="_formBlock">
 					<template #label>Moderation note</template>
@@ -113,7 +125,7 @@
 
 					<MkFileListForAdmin :pagination="filesPagination" view-mode="grid"/>
 				</FormFolder>
-				<FormSection>
+				<FormSection v-if="user.host == null">
 					<template #label>Drive Capacity Override</template>
 
 					<FormInput v-if="user.host == null" v-model="driveCapacityOverrideMb" inline :manual-save="true" type="number" :placeholder="i18n.t('defaultValueIs', { value: instance.driveCapacityPerLocalUserMb })" @update:model-value="applyDriveCapacityOverride">
@@ -123,6 +135,22 @@
 							{{ i18n.ts.driveCapOverrideCaption }}
 						</template>
 					</FormInput>
+				</FormSection>
+				<FormSection v-if="iAmModerator">
+					<template #label>{{ i18n.ts.usageAmount }}</template>
+					<div class="_formBlock uawsfosz">
+						<div class="meter"><div :style="meterStyle"></div></div>
+					</div>
+					<FormSplit>
+						<MkKeyValue class="_formBlock">
+							<template #key>{{ i18n.ts.capacity }}</template>
+							<template #value>{{ bytes(capacity, 1) }}</template>
+						</MkKeyValue>
+						<MkKeyValue class="_formBlock">
+							<template #key>{{ i18n.ts.inUse }}</template>
+							<template #value>{{ bytes(usage, 1) }}</template>
+						</MkKeyValue>
+					</FormSplit>
 				</FormSection>
 			</div>
 			<div v-else-if="tab === 'chart'" class="_formRoot">
@@ -153,7 +181,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from 'vue';
+import { computed, watch, ref } from 'vue';
 import * as misskey from 'misskey-js';
 import MkChart from '@/components/MkChart.vue';
 import MkObjectView from '@/components/MkObjectView.vue';
@@ -179,6 +207,8 @@ import { definePageMetadata } from '@/scripts/page-metadata';
 import { i18n } from '@/i18n';
 import { iAmAdmin, iAmModerator } from '@/account';
 import { instance } from '@/instance';
+import { defaultStore } from '@/store';
+import tinycolor from 'tinycolor2';
 
 const props = defineProps<{
 	userId: string;
@@ -204,6 +234,20 @@ const filesPagination = {
 		userId: props.userId,
 	})),
 };
+const enableSudo = defaultStore.state.enableSudo;
+const usage = ref<any>(null);
+const capacity = ref<any>(null);
+
+const meterStyle = computed(() => {
+	return {
+		width: `${usage.value / capacity.value * 100}%`,
+		background: tinycolor({
+			h: 180 - (usage.value / capacity.value * 180),
+			s: 0.7,
+			l: 0.5,
+		}),
+	};
+});
 
 function createFetcher() {
 	if (iAmModerator) {
@@ -223,6 +267,8 @@ function createFetcher() {
 			suspended = info.isSuspended;
 			driveCapacityOverrideMb = user.driveCapacityOverrideMb;
 			moderationNote = info.moderationNote;
+			capacity.value = info.capacity;
+			usage.value = info.usage;
 
 			watch($$(moderationNote), async () => {
 				await os.api('admin/update-user-note', { userId: user.id, text: moderationNote });
@@ -248,14 +294,38 @@ async function updateRemoteUser() {
 }
 
 async function resetPassword() {
-	const { password } = await os.api('admin/reset-password', {
-		userId: user.id,
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.resetPasswordConfirm,
 	});
+	if (confirm.canceled) {
+		return;
+	} else {
+		const { password } = await os.api('admin/reset-password', {
+			userId: user.id,
+		});
+		os.alert({
+			type: 'success',
+			text: i18n.t('newPasswordIs', { password }),
+		});
+	}
+}
 
-	os.alert({
-		type: 'success',
-		text: i18n.t('newPasswordIs', { password }),
+async function reset2fa() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.reset2faConfirm,
 	});
+	if (confirm.canceled) {
+		return;
+	} else {
+		await os.api('admin/reset-2fa', {
+			userId: user.id,
+		});
+		os.alert({
+			type: 'success',
+		});
+	}
 }
 
 async function toggleSilence(v) {
@@ -301,17 +371,29 @@ async function deleteAllFiles() {
 		text: i18n.ts.deleteAllFilesConfirm,
 	});
 	if (confirm.canceled) return;
-	const process = async () => {
-		await os.api('admin/delete-all-files-of-a-user', { userId: user.id });
-		os.success();
-	};
-	await process().catch(err => {
+	const typed = await os.inputText({
+		text: i18n.t('typeToConfirm', { x: user?.username }),
+	});
+	if (typed.canceled) return;
+
+	if (typed.result === user?.username) {
+		const process = async () => {
+			await os.api('admin/delete-all-files-of-a-user', { userId: user.id });
+			os.success();
+		};
+		await process().catch(err => {
+			os.alert({
+				type: 'error',
+				text: err.toString(),
+			});
+		});
+		await refreshUser();
+	} else {
 		os.alert({
 			type: 'error',
-			text: err.toString(),
+			text: 'input not match',
 		});
-	});
-	await refreshUser();
+	}
 }
 
 async function applyDriveCapacityOverride() {
@@ -354,6 +436,31 @@ async function deleteAccount() {
 	}
 }
 
+async function sendDeleteAccountToRemote() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.deleteAccountConfirm,
+	});
+	if (confirm.canceled) return;
+	await os.apiWithDialog('admin/suspend-user', {
+		userId: user.id,
+		isDelete: true,
+	});
+	await refreshUser();
+}
+
+async function sendModNotification() {
+	const { canceled, result: comment } = await os.inputText({
+		title: "Moderation Notification 運営からの通知",
+	});
+	if (canceled) return;
+	await os.api('admin/send-notification', {
+		comment: comment,
+		userId: user.id,
+	});
+	os.success();
+}
+
 watch(() => props.userId, () => {
 	init = createFetcher();
 }, {
@@ -374,7 +481,7 @@ const headerTabs = $computed(() => [{
 	key: 'overview',
 	title: i18n.ts.overview,
 	icon: 'fas fa-info-circle',
-}, iAmModerator ? {
+}, (iAmModerator && enableSudo) ? {
 	key: 'moderation',
 	title: i18n.ts.moderation,
 	icon: 'fas fa-shield-halved',
@@ -395,6 +502,7 @@ definePageMetadata(computed(() => ({
 </script>
 
 <style lang="scss" scoped>
+@use "sass:math";
 .aeakzknw {
 	display: flex;
 	align-items: center;
@@ -474,6 +582,21 @@ definePageMetadata(computed(() => ({
 		> .label {
 			margin-bottom: 12px;
 			font-weight: bold;
+		}
+	}
+}
+
+.uawsfosz {
+
+	> .meter {
+		$size: 12px;
+		background: rgba(0, 0, 0, 0.1);
+		border-radius: math.div($size, 2);
+		overflow: hidden;
+
+		> div {
+			height: $size;
+			border-radius: math.div($size, 2);
 		}
 	}
 }

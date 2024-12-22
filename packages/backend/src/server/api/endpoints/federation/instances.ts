@@ -2,11 +2,15 @@ import config from '@/config/index.js';
 import define from '../../define.js';
 import { Instances } from '@/models/index.js';
 import { fetchMeta } from '@/misc/fetch-meta.js';
+import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 
 export const meta = {
 	tags: ['federation'],
 
 	requireCredential: false,
+
+	allowGet: true,
+	cacheSec: 60 * 60,
 
 	res: {
 		type: 'array',
@@ -62,9 +66,9 @@ export default define(meta, paramDef, async (ps, me) => {
 	if (typeof ps.blocked === 'boolean') {
 		const meta = await fetchMeta(true);
 		if (ps.blocked) {
-			query.andWhere('instance.host IN (:...blocks)', { blocks: meta.blockedHosts });
+			query.andWhere(meta.blockedHosts.length === 0 ? '1=0': 'instance.host ILIKE ANY(ARRAY[:...blocked])', { blocked: meta.blockedHosts.flatMap(x => [x, `%.${x}`]) });
 		} else {
-			query.andWhere('instance.host NOT IN (:...blocks)', { blocks: meta.blockedHosts });
+			query.andWhere(meta.blockedHosts.length === 0 ? '1=1': 'instance.host NOT ILIKE ALL(ARRAY[:...blocked])', { blocked: meta.blockedHosts.flatMap(x => [x, `%.${x}`]) });
 		}
 	}
 
@@ -109,7 +113,7 @@ export default define(meta, paramDef, async (ps, me) => {
 	}
 
 	if (ps.host) {
-		query.andWhere('instance.host like :host', { host: '%' + ps.host.toLowerCase() + '%' });
+		query.andWhere('instance.host like :host', { host: '%' + sqlLikeEscape(ps.host.toLowerCase()) + '%' });
 	}
 
 	const instances = await query.take(ps.limit).skip(ps.offset).getMany();

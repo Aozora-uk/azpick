@@ -1,6 +1,8 @@
 import Koa from 'koa';
 import bcrypt from 'bcryptjs';
+import { comparePassword } from '@/misc/password.js';
 import * as speakeasy from 'speakeasy';
+import * as OTPAuth from 'otpauth';
 import signin from '../common/signin.js';
 import config from '@/config/index.js';
 import { Users, Signins, UserProfiles, UserSecurityKeys, AttestationChallenges } from '@/models/index.js';
@@ -69,6 +71,13 @@ export default async (ctx: Koa.Context) => {
 		return;
 	}
 
+	if (user.isSuspended && user.isDeleted) {
+		error(404, {
+			id: '6cc579cc-885d-43d8-95c2-b8c7fc963280',
+		});
+		return;
+	}
+
 	if (user.isSuspended) {
 		error(403, {
 			id: 'e03a5f46-d309-4865-9b69-56282d94e1eb',
@@ -79,7 +88,8 @@ export default async (ctx: Koa.Context) => {
 	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
 
 	// Compare password
-	const same = await bcrypt.compare(password, profile.password!);
+	//const same = await bcrypt.compare(password, profile.password!);
+	const same = await comparePassword(password, profile.password!);
 
 	async function fail(status?: number, failure?: { id: string }) {
 		// Append signin history
@@ -112,6 +122,14 @@ export default async (ctx: Koa.Context) => {
 			await fail(403, {
 				id: '932c904e-9460-45b7-9ce6-7ed33be7eb2c',
 			});
+			return;
+		}
+
+		if (profile.twoFactorBackupSecret?.includes(token)) {
+			await UserProfiles.update({ userId: profile.userId }, {
+				twoFactorBackupSecret: profile.twoFactorBackupSecret.filter((secret) => secret !== token),
+			});
+			signin(ctx, user);
 			return;
 		}
 

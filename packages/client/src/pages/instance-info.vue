@@ -24,11 +24,13 @@
 				<template #value>{{ instance.description }}</template>
 			</MkKeyValue>
 
-			<FormSection v-if="iAmModerator">
+			<FormSection v-if="iAmModerator && enableSudo">
 				<template #label>Moderation</template>
 				<FormSwitch v-model="suspended" class="_formBlock" @update:modelValue="toggleSuspend">{{ i18n.ts.stopActivityDelivery }}</FormSwitch>
-				<FormSwitch v-model="isBlocked" class="_formBlock" @update:modelValue="toggleBlock">{{ i18n.ts.blockThisInstance }}</FormSwitch>
+				<FormSwitch :disabled="!iAmAdmin || (isBlocked && !isExactlyBlocked)" v-model="isBlocked" class="_formBlock" @update:modelValue="toggleBlock">{{ i18n.ts.blockThisInstance }}</FormSwitch>
 				<MkButton @click="refreshMetadata"><i class="fas fa-refresh"></i> Refresh metadata</MkButton>
+				<MkButton v-if="(!suspended && !isBlocked) && $i && $i.isAdmin" inline danger @click="deleteFollowing"><i class="fas fa-minus"></i> Unfollow All Instance Users</MkButton>
+				<MkButton v-if="(suspended || isBlocked) && $i && $i.isAdmin" inline danger @click="deleteInstanceUsers"><i class="fas fa-trash-alt"></i> Delete All Instance Users</MkButton>
 			</FormSection>
 
 			<FormSection>
@@ -53,7 +55,7 @@
 					<template #value><MkTime v-if="instance.latestRequestReceivedAt" :time="instance.latestRequestReceivedAt"/><span v-else>N/A</span></template>
 				</MkKeyValue>
 			</FormSection>
-	
+
 			<FormSection>
 				<MkKeyValue oneline style="margin: 1em 0;">
 					<template #key>Following (Pub)</template>
@@ -129,11 +131,12 @@ import FormSwitch from '@/components/form/switch.vue';
 import * as os from '@/os';
 import number from '@/filters/number';
 import bytes from '@/filters/bytes';
-import { iAmModerator } from '@/account';
+import { iAmModerator, iAmAdmin } from '@/account';
 import { definePageMetadata } from '@/scripts/page-metadata';
 import { i18n } from '@/i18n';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import MkPagination from '@/components/MkPagination.vue';
+import { defaultStore } from '@/store';
 
 const props = defineProps<{
 	host: string;
@@ -145,6 +148,8 @@ let meta = $ref<misskey.entities.DetailedInstanceMetadata | null>(null);
 let instance = $ref<misskey.entities.Instance | null>(null);
 let suspended = $ref(false);
 let isBlocked = $ref(false);
+let isExactlyBlocked = $ref(false);
+const enableSudo = defaultStore.state.enableSudo;
 
 const usersPagination = {
 	endpoint: iAmModerator ? 'admin/show-users' : 'users' as const,
@@ -158,25 +163,53 @@ const usersPagination = {
 };
 
 async function fetch() {
-	instance = await os.api('federation/show-instance', {
-		host: props.host,
-	});
+	if (iAmModerator) {
+		instance = await os.api('admin/federation/show-instance', {
+			host: props.host,
+		});
+	} else {
+		instance = await os.api('federation/show-instance', {
+			host: props.host,
+		});
+	}
+	if (iAmAdmin) {
+		meta = await os.api('admin/meta');
+		isExactlyBlocked = meta.blockedHosts.includes(instance.host);
+	}
 	suspended = instance.isSuspended;
 	isBlocked = instance.isBlocked;
 }
 
 async function toggleBlock(ev) {
-	if (meta == null) return;
+	if (!meta) {
+		fetch();
+		throw new Error('No meta?');
+	}
+	if (!instance) {
+		fetch();
+		throw new Error('No instance?');
+	}
+	if (!isBlocked && !isExactlyBlocked) {
+		isBlocked = true;
+		return;
+	}
+	const { host } = instance;
 	await os.api('admin/update-meta', {
-		blockedHosts: isBlocked ? meta.blockedHosts.concat([instance.host]) : meta.blockedHosts.filter(x => x !== instance.host),
+		blockedHosts: isBlocked ? meta.blockedHosts.concat([host]) : meta.blockedHosts.filter(x => x !== host),
 	});
+	fetch();
 }
 
 async function toggleSuspend(v) {
+	if (!instance) {
+		fetch();
+		throw new Error('No instance?');
+	}
 	await os.api('admin/federation/update-instance', {
 		host: instance.host,
 		isSuspended: suspended,
 	});
+	fetch();
 }
 
 function refreshMetadata() {
@@ -186,6 +219,56 @@ function refreshMetadata() {
 	os.alert({
 		text: 'Refresh requested',
 	});
+}
+
+async function deleteInstanceUsers() {
+	const { canceled } = await os.confirm({
+		type: "warning",
+		text: i18n.t("removeAreYouSure", { x: instance.host }),
+	});
+	if (canceled) return;
+	const typed = await os.inputText({
+		text: i18n.t('typeToConfirm', { x: instance?.host }),
+	});
+	if (typed.canceled) return;
+	if (typed.result === instance?.host) {
+		await os.api('admin/delete-instance-users', {
+			host: instance.host,
+		});
+		await os.alert({
+			text: 'Account Deletion is in progress',
+		});
+	} else {
+		os.alert({
+			type: 'error',
+			text: 'input not match',
+		});
+	}
+}
+
+async function deleteFollowing() {
+	const { canceled } = await os.confirm({
+		type: "warning",
+		text: i18n.t("unfollowConfirm", { name: instance.host }),
+	});
+	if (canceled) return;
+	const typed = await os.inputText({
+		text: i18n.t('typeToConfirm', { x: instance?.host }),
+	});
+	if (typed.canceled) return;
+	if (typed.result === instance?.host) {
+		await os.api('admin/federation/remove-all-following', {
+			host: instance.host,
+		});
+		await os.alert({
+			text: 'Unfollowing is in progress',
+		});
+	} else {
+		os.alert({
+			type: 'error',
+			text: 'input not match',
+		});
+	}
 }
 
 fetch();
@@ -206,15 +289,15 @@ const headerTabs = $computed(() => [{
 	key: 'chart',
 	title: i18n.ts.charts,
 	icon: 'fas fa-chart-simple',
-}, {
+}, (iAmModerator && enableSudo) ? {
 	key: 'users',
 	title: i18n.ts.users,
 	icon: 'fas fa-users',
-}, {
+} : null, {
 	key: 'raw',
 	title: 'Raw',
 	icon: 'fas fa-code',
-}]);
+}].filter(x => x != null));
 
 definePageMetadata({
 	title: props.host,

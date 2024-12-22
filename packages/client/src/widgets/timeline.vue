@@ -3,9 +3,12 @@
 	<template #header>
 		<button class="_button" @click="choose">
 			<i v-if="widgetProps.src === 'home'" class="fas fa-home"></i>
+			<i v-else-if="widgetProps.src === 'limited'" class="fas fa-unlock"></i>
 			<i v-else-if="widgetProps.src === 'local'" class="fas fa-comments"></i>
 			<i v-else-if="widgetProps.src === 'social'" class="fas fa-share-alt"></i>
+			<i v-else-if="widgetProps.src === 'media'" class="fas fa-file"></i>
 			<i v-else-if="widgetProps.src === 'global'" class="fas fa-globe"></i>
+			<i v-else-if="widgetProps.src === 'personal'" class="fas fa-book"></i>
 			<i v-else-if="widgetProps.src === 'list'" class="fas fa-list-ul"></i>
 			<i v-else-if="widgetProps.src === 'antenna'" class="fas fa-satellite"></i>
 			<span style="margin-left: 8px;">{{ widgetProps.src === 'list' ? widgetProps.list.name : widgetProps.src === 'antenna' ? widgetProps.antenna.name : $t('_timelines.' + widgetProps.src) }}</span>
@@ -14,7 +17,16 @@
 	</template>
 
 	<div>
-		<XTimeline :key="widgetProps.src === 'list' ? `list:${widgetProps.list.id}` : widgetProps.src === 'antenna' ? `antenna:${widgetProps.antenna.id}` : widgetProps.src" :src="widgetProps.src" :list="widgetProps.list ? widgetProps.list.id : null" :antenna="widgetProps.antenna ? widgetProps.antenna.id : null"/>
+		<div v-if="((widgetProps.src === 'local' || widgetProps.src === 'social') && !isLocalTimelineAvailable) || (widgetProps.src === 'media' && !isMediaTimelineAvailable) || (widgetProps.src === 'personal' && !isPersonalTimelineAvailable) || (widgetProps.src === 'limited' && !isLimitedTimelineAvailable) || (widgetProps.src === 'global' && !isGlobalTimelineAvailable)" class="iwaalbte">
+			<p>
+				<i class="fas fa-minus-circle"></i>
+				{{ i18n.ts.disabledTimelineTitle }}
+			</p>
+			<p class="desc">{{ i18n.ts.disabledTimelineDescription }}</p>
+		</div>
+		<div v-else>
+			<XTimeline :key="widgetProps.src === 'list' ? `list:${widgetProps.list.id}` : widgetProps.src === 'antenna' ? `antenna:${widgetProps.antenna.id}` : widgetProps.src" :src="widgetProps.src" :list="widgetProps.list ? widgetProps.list.id : null" :antenna="widgetProps.antenna ? widgetProps.antenna.id : null"/>
+		</div>
 	</div>
 </MkContainer>
 </template>
@@ -28,8 +40,15 @@ import MkContainer from '@/components/MkContainer.vue';
 import XTimeline from '@/components/MkTimeline.vue';
 import { $i } from '@/account';
 import { i18n } from '@/i18n';
+import { instance } from '@/instance';
+import { defaultStore } from '@/store';
 
 const name = 'timeline';
+const isMediaTimelineAvailable = (!instance.disableLocalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableMTL && defaultStore.state.enableLTL;
+const isLocalTimelineAvailable = (!instance.disableLocalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableLTL;
+const isGlobalTimelineAvailable = (!instance.disableGlobalTimeline || ($i != null && ($i.isModerator || $i.isAdmin))) && defaultStore.state.enableGTL;
+const isPersonalTimelineAvailable = $i != null && defaultStore.state.enablePTL;
+const isLimitedTimelineAvailable = $i != null && defaultStore.state.enableLimitedTL;
 
 const widgetPropsDef = {
 	showHeader: {
@@ -105,6 +124,10 @@ const choose = async (ev) => {
 		icon: 'fas fa-home',
 		action: () => { setSrc('home'); }
 	}, {
+		text: i18n.ts._timelines.limited,
+		icon: 'fas fa-unlock',
+		action: () => { setSrc('limited'); }
+	}, {
 		text: i18n.ts._timelines.local,
 		icon: 'fas fa-comments',
 		action: () => { setSrc('local'); }
@@ -113,9 +136,17 @@ const choose = async (ev) => {
 		icon: 'fas fa-share-alt',
 		action: () => { setSrc('social'); }
 	}, {
+		text: i18n.ts._timelines.media,
+		icon: 'fas fa-file',
+		action: () => { setSrc('media'); }
+	}, {
 		text: i18n.ts._timelines.global,
 		icon: 'fas fa-globe',
 		action: () => { setSrc('global'); }
+	}, {
+		text: i18n.ts._timelines.personal,
+		icon: 'fas fa-book',
+		action: () => { setSrc('personal'); }
 	}, antennaItems.length > 0 ? null : undefined, ...antennaItems, listItems.length > 0 ? null : undefined, ...listItems], ev.currentTarget ?? ev.target).then(() => {
 		menuOpened.value = false;
 	});
@@ -127,3 +158,15 @@ defineExpose<WidgetComponentExpose>({
 	id: props.widget ? props.widget.id : null,
 });
 </script>
+
+<style lang="scss" scoped>
+.iwaalbte {
+	text-align: center;
+	> p {
+		margin: 16px;
+		&.desc {
+			font-size: 14px;
+		}
+	}
+}
+</style>

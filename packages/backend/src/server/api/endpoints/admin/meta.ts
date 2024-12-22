@@ -191,6 +191,14 @@ export const meta = {
 					optional: false, nullable: false,
 				},
 			},
+			blockedEmailDomains: {
+				type: 'array',
+				optional: true, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
 			hcaptchaSecretKey: {
 				type: 'string',
 				optional: true, nullable: true,
@@ -332,6 +340,18 @@ export const meta = {
 				type: 'boolean',
 				optional: true, nullable: false,
 			},
+			doNotSendNotificationEmailsForAbuseReport: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			doNotSendNotificationEmailsForAbuseReportToModerator: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			emailToReceiveAbuseReport: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 		},
 	},
 } as const;
@@ -394,6 +414,7 @@ export default define(meta, paramDef, async (ps, me) => {
 		pinnedUsers: instance.pinnedUsers,
 		hiddenTags: instance.hiddenTags,
 		blockedHosts: instance.blockedHosts,
+		blockedEmailDomains: instance.blockedEmailDomains,
 		hcaptchaSecretKey: instance.hcaptchaSecretKey,
 		recaptchaSecretKey: instance.recaptchaSecretKey,
 		sensitiveMediaDetection: instance.sensitiveMediaDetection,
@@ -432,5 +453,8 @@ export default define(meta, paramDef, async (ps, me) => {
 		deeplIsPro: instance.deeplIsPro,
 		enableIpLogging: instance.enableIpLogging,
 		enableActiveEmailValidation: instance.enableActiveEmailValidation,
+		doNotSendNotificationEmailsForAbuseReport: instance.doNotSendNotificationEmailsForAbuseReport,
+		doNotSendNotificationEmailsForAbuseReportToModerator: instance.doNotSendNotificationEmailsForAbuseReportToModerator,
+		emailToReceiveAbuseReport: instance.emailToReceiveAbuseReport,
 	};
 });

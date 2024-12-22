@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import json from 'koa-json-body';
+import bodyParser from 'koa-bodyparser';
 import httpSignature from '@peertube/http-signature';
 
 import { renderActivity } from '@/remote/activitypub/renderer/index.js';
@@ -19,6 +20,12 @@ import { In, IsNull, Not } from 'typeorm';
 import { renderLike } from '@/remote/activitypub/renderer/like.js';
 import { getUserKeypair } from '@/misc/keypair-store.js';
 import renderFollow from '@/remote/activitypub/renderer/follow.js';
+import config from '@/config/index.js';
+import Koa from 'koa';
+import * as crypto from 'node:crypto';
+import { inspect } from 'node:util';
+import { IActivity } from '@/remote/activitypub/type.js';
+import { serverLogger } from './index.js';
 
 // Init router
 const router = new Router();
@@ -26,16 +33,93 @@ const router = new Router();
 //#region Routing
 
 function inbox(ctx: Router.RouterContext) {
-	let signature;
-
-	try {
-		signature = httpSignature.parseRequest(ctx.req, { 'headers': [] });
-	} catch (e) {
-		ctx.status = 401;
+	if (ctx.req.headers.host !== config.host) {
+		serverLogger.warn("inbox: Invalid Host");
+		ctx.status = 400;
+		ctx.message = "Invalid Host";
 		return;
 	}
 
-	processInbox(ctx.request.body, signature);
+	let signature: httpSignature.IParsedSignature;
+
+	try {
+		signature = httpSignature.parseRequest(ctx.req, { headers: ['(request-target)', 'digest', 'host', 'date'] });
+	} catch (e) {
+		serverLogger.warn(`inbox: signature parse error: ${inspect(e)}`);
+		ctx.status = 401;
+
+		if (e instanceof Error) {
+			if (e.name === "ExpiredRequestError")
+				ctx.message = "Expired Request Error";
+			if (e.name === "MissingHeaderError")
+				ctx.message = "Missing Required Header";
+		}
+
+		return;
+	}
+
+	// Validate signature algorithm
+	if (
+		!signature.algorithm
+			.toLowerCase()
+			.match(/^((dsa|rsa|ecdsa)-(sha256|sha384|sha512)|ed25519-sha512|hs2019)$/)
+	) {
+		serverLogger.warn(
+			`inbox: invalid signature algorithm ${signature.algorithm}`,
+		);
+		ctx.status = 401;
+		ctx.message = "Invalid Signature Algorithm";
+		return;
+
+		// hs2019
+		// keyType=ED25519 => ed25519-sha512
+		// keyType=other => (keyType)-sha256
+	}
+
+	// Validate digest header
+	const digest = ctx.req.headers.digest;
+
+	if (typeof digest !== "string") {
+		serverLogger.warn(
+			"inbox: zero or more than one digest header(s) are present",
+		);
+		ctx.status = 401;
+		ctx.message = "Invalid Digest Header";
+		return;
+	}
+
+	const match = digest.match(/^([0-9A-Za-z-]+)=(.+)$/);
+
+	if (match == null) {
+		serverLogger.warn("inbox: unrecognized digest header");
+		ctx.status = 401;
+		ctx.message = "Invalid Digest Header";
+		return;
+	}
+
+	const digestAlgo = match[1];
+	const expectedDigest = match[2];
+
+	if (digestAlgo.toUpperCase() !== "SHA-256") {
+		serverLogger.warn("inbox: unsupported digest algorithm");
+		ctx.status = 401;
+		ctx.message = "Unsupported Digest Algorithm";
+		return;
+	}
+
+	const actualDigest = crypto
+		.createHash("sha256")
+		.update(ctx.request.rawBody)
+		.digest("base64");
+
+	if (expectedDigest !== actualDigest) {
+		serverLogger.warn("inbox: Digest Mismatch");
+		ctx.status = 401;
+		ctx.message = "Digest Missmatch";
+		return;
+	}
+
+	processInbox(ctx.request.body as IActivity, signature);
 
 	ctx.status = 202;
 }
@@ -58,9 +142,24 @@ export function setResponseType(ctx: Router.RouterContext) {
 	}
 }
 
+async function parseJsonBodyOrFail(ctx: Router.RouterContext, next: Koa.Next) {
+	const koaBodyParser = bodyParser({
+		enableTypes: ["json"],
+		detectJSON: () => true,
+	});
+
+	try {
+		await koaBodyParser(ctx, next);
+	}
+	catch {
+		ctx.status = 400;
+		return;
+	}
+}
+
 // inbox
-router.post('/inbox', json(), inbox);
-router.post('/users/:user/inbox', json(), inbox);
+router.post('/inbox', parseJsonBodyOrFail, inbox);
+router.post('/users/:user/inbox', parseJsonBodyOrFail, inbox);
 
 // note
 router.get('/notes/:note', async (ctx, next) => {
@@ -155,6 +254,16 @@ async function userInfo(ctx: Router.RouterContext, user: User | null) {
 		return;
 	}
 
+	// リモートだったらリダイレクト
+	if (user.host != null) {
+		if (user.uri == null || isSelfHost(user.host)) {
+			ctx.status = 500;
+			return;
+		}
+		ctx.redirect(user.uri);
+		return;
+	}
+
 	ctx.body = renderActivity(await renderPerson(user as ILocalUser));
 	ctx.set('Cache-Control', 'public, max-age=180');
 	setResponseType(ctx);
@@ -169,6 +278,7 @@ router.get('/users/:user', async (ctx, next) => {
 		id: userId,
 		host: IsNull(),
 		isSuspended: false,
+		isDeleted: false,
 	});
 
 	await userInfo(ctx, user);
@@ -181,6 +291,7 @@ router.get('/@:user', async (ctx, next) => {
 		usernameLower: ctx.params.user.toLowerCase(),
 		host: IsNull(),
 		isSuspended: false,
+		isDeleted: false,
 	});
 
 	await userInfo(ctx, user);

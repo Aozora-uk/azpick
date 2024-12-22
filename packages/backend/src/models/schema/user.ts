@@ -96,6 +96,16 @@ export const packedUserDetailedNotMeOnlySchema = {
 			format: 'uri',
 			nullable: true, optional: false,
 		},
+		movedToUserId: {
+			type: 'string',
+			nullable: true, optional: false,
+			format: 'id',
+		},
+		movedToUser: {
+			type: 'object',
+			ref: 'UserDetailed',
+			nullable: true, optional: false,
+		},
 		createdAt: {
 			type: 'string',
 			nullable: false, optional: false,
@@ -392,6 +402,21 @@ export const packedMeDetailedOnlySchema = {
 				nullable: false, optional: false,
 			},
 		},
+		twoFactorEnabled: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
+		},
+		usePasswordLessLogin: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
+		},
+		securityKeys: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
+		},
 		//#region secrets
 		email: {
 			type: 'string',
@@ -408,6 +433,11 @@ export const packedMeDetailedOnlySchema = {
 				type: 'object',
 				nullable: false, optional: false,
 			},
+		},
+		twoFactorBackupCodesStock: {
+			type: 'string',
+			enum: ['full', 'partial', 'none'],
+			nullable: false, optional: false,
 		},
 		//#endregion
 	},

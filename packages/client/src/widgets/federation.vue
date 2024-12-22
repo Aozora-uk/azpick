@@ -56,7 +56,7 @@ const charts = ref([]);
 const fetching = ref(true);
 
 const fetch = async () => {
-	const fetchedInstances = await os.api('federation/instances', {
+	const fetchedInstances = await os.apiGet('federation/instances', {
 		sort: '+lastCommunicatedAt',
 		limit: 5,
 	});

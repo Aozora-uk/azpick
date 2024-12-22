@@ -1,10 +1,11 @@
 import { publishMainStream } from '@/services/stream.js';
 import { pushNotification } from '@/services/push-notification.js';
-import { Notifications, Mutings, UserProfiles, Users } from '@/models/index.js';
+import { Notifications, Mutings, UserProfiles, Users, Blockings, Notes, UserGroups, UserGroupInvitations } from '@/models/index.js';
 import { genId } from '@/misc/gen-id.js';
 import { User } from '@/models/entities/user.js';
 import { Notification } from '@/models/entities/notification.js';
 import { sendEmailNotification } from './send-email-notification.js';
+import config from '@/config/index.js';
 
 export async function createNotification(
 	notifieeId: User['id'],
@@ -42,20 +43,65 @@ export async function createNotification(
 		if (fresh == null) return; // 既に削除されているかもしれない
 		if (fresh.isRead) return;
 
-		//#region ただしミュートしているユーザーからの通知なら無視
+		//#region ただしミュートかブロックしているユーザーからの通知なら無視
 		const mutings = await Mutings.findBy({
 			muterId: notifieeId,
 		});
+		const blockings = await Blockings.findBy({
+			blockerId: notifieeId,
+		});
 		if (data.notifierId && mutings.map(m => m.muteeId).includes(data.notifierId)) {
 			return;
+		}
+		if (data.notifierId && blockings.map(m => m.blockeeId).includes(data.notifierId)) {
+			return;
+		}
+		if (data.notifierId) {
+			const notifierData = await Users.findOneBy({
+				id: data.notifierId,
+			});
+			if (notifierData.host != null) {
+				if (profile.mutedInstances.includes(notifierData.host)) {
+					const updates = {
+						isRead: true,
+					};
+					await Notifications.update({
+						notifierId: data.notifierId,
+						notifieeId: notifieeId,
+					}, updates);
+					return;
+				}
+			}
 		}
 		//#endregion
 
 		publishMainStream(notifieeId, 'unreadNotification', packed);
 		pushNotification(notifieeId, 'notification', packed);
 
-		if (type === 'follow') sendEmailNotification.follow(notifieeId, await Users.findOneByOrFail({ id: data.notifierId! }));
-		if (type === 'receiveFollowRequest') sendEmailNotification.receiveFollowRequest(notifieeId, await Users.findOneByOrFail({ id: data.notifierId! }));
+		if (type === 'reply') {
+			const note = await Notes.findOneByOrFail({ id: data.noteId });
+			const noteUrl = `${config.url}/notes/${note.id}`;
+			sendEmailNotification.reply(notifieeId, await Users.findOneByOrFail({ id: data.notifierId }), note.text, noteUrl);
+		}
+		if (type === 'mention') {
+			const note = await Notes.findOneByOrFail({ id: data.noteId });
+			const noteUrl = `${config.url}/notes/${note.id}`;
+			sendEmailNotification.mention(notifieeId, await Users.findOneByOrFail({ id: data.notifierId }), note.text, noteUrl);
+		}
+		if (type === 'quote') {
+			const note = await Notes.findOneByOrFail({ id: data.noteId });
+			const noteUrl = `${config.url}/notes/${note.id}`;
+			const renoteUrl = `${config.url}/notes/${note.renoteId}`;
+			sendEmailNotification.quote(notifieeId, await Users.findOneByOrFail({ id: data.notifierId }), note.text, noteUrl, renoteUrl);
+		}
+		if (type === 'groupInvited') {
+			const invite = await UserGroupInvitations.findOneByOrFail({ id: data.userGroupInvitationId });
+			const group = await UserGroups.findOneByOrFail({ id: invite.userGroupId });
+			sendEmailNotification.groupInvited(notifieeId, group.name);
+		}
+		if (type === 'app') sendEmailNotification.app(notifieeId, data.customHeader, data.customBody);
+		if (type === 'follow') sendEmailNotification.follow(notifieeId, await Users.findOneByOrFail({ id: data.notifierId }));
+		if (type === 'receiveFollowRequest') sendEmailNotification.receiveFollowRequest(notifieeId, await Users.findOneByOrFail({ id: data.notifierId }));
 	}, 2000);
 
 	return notification;

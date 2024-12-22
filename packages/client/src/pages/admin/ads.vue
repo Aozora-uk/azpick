@@ -29,7 +29,7 @@
 					<MkInput v-model="ad.ratio" type="number">
 						<template #label>{{ i18n.ts.ratio }}</template>
 					</MkInput>
-					<MkInput v-model="ad.expiresAt" type="date">
+					<MkInput v-model="ad.expiresAt" type="datetime-local">
 						<template #label>{{ i18n.ts.expiration }}</template>
 					</MkInput>
 				</FormSplit>
@@ -41,6 +41,9 @@
 					<MkButton class="button" inline danger @click="remove(ad)"><i class="fas fa-trash-alt"></i> {{ i18n.ts.remove }}</MkButton>
 				</div>
 			</div>
+			<MkButton class="button" @click="more()">
+				<i class="fas fa-rotate-right"></i>{{ i18n.ts.more }}
+			</MkButton>
 		</div>
 	</MkSpacer>
 </MkStickyContainer>
@@ -60,8 +63,19 @@ import { definePageMetadata } from '@/scripts/page-metadata';
 
 let ads: any[] = $ref([]);
 
+// ISO形式はTZがUTCになってしまうので、TZ分ずらして時間を初期化
+const localTime = new Date();
+const localTimeDiff = localTime.getTimezoneOffset() * 60 * 1000;
+
 os.api('admin/ad/list').then(adsResponse => {
-	ads = adsResponse;
+	ads = adsResponse.map(r => {
+		const date = new Date(r.expiresAt);
+		date.setMilliseconds(date.getMilliseconds() - localTimeDiff);
+		return {
+			...r,
+			expiresAt: date.toISOString().slice(0, 16),
+		};
+	});
 });
 
 function add() {
@@ -92,16 +106,64 @@ function remove(ad) {
 
 function save(ad) {
 	if (ad.id == null) {
-		os.apiWithDialog('admin/ad/create', {
+		os.api('admin/ad/create', {
 			...ad,
 			expiresAt: new Date(ad.expiresAt).getTime(),
+		}).then(() => {
+				os.alert({
+					type: 'success',
+					text: i18n.ts.saved,
+				});
+				refresh();
+			}).catch(err => {
+				os.alert({
+					type: 'error',
+					text: err,
+				});
 		});
 	} else {
-		os.apiWithDialog('admin/ad/update', {
+		os.api('admin/ad/update', {
 			...ad,
 			expiresAt: new Date(ad.expiresAt).getTime(),
+		}).then(() => {
+				os.alert({
+					type: 'success',
+					text: i18n.ts.saved,
+				});
+				refresh();
+			}).catch(err => {
+				os.alert({
+					type: 'error',
+					text: err,
+			});
 		});
 	}
+}
+
+function refresh() {
+	os.api('admin/ad/list').then(adsResponse => {
+		ads = adsResponse.map(r => {
+			const date = new Date(r.expiresAt);
+			date.setMilliseconds(date.getMilliseconds() - localTimeDiff);
+			return {
+				...r,
+				expiresAt: date.toISOString().slice(0, 16),
+			};
+		});
+	});
+}
+
+function more() {
+	os.api('admin/ad/list', { untilId: ads.reduce((acc, ad) => ad.id != null ? ad : acc).id }).then(adsResponse => {
+		ads = ads.concat(adsResponse.map(r => {
+			const date = new Date(r.expiresAt);
+			date.setMilliseconds(date.getMilliseconds() - localTimeDiff);
+			return {
+				...r,
+				expiresAt: date.toISOString().slice(0, 16),
+			};
+		}));
+	});
 }
 
 const headerActions = $computed(() => [{

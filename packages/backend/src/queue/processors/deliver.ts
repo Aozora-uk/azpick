@@ -24,7 +24,7 @@ export default async (job: Bull.Job<DeliverJobData>) => {
 
 	// ブロックしてたら中断
 	const meta = await fetchMeta();
-	if (meta.blockedHosts.includes(toPuny(host))) {
+	if (meta.blockedHosts.some(x => toPuny(host).endsWith(x))) {
 		return 'skip (blocked)';
 	}
 
@@ -47,7 +47,7 @@ export default async (job: Bull.Job<DeliverJobData>) => {
 			logger.debug(`delivering ${latest}`);
 		}
 
-		await request(job.data.user, job.data.to, job.data.content);
+		await request(job.data.user, job.data.to, job.data.content, job.data.digest);
 
 		// Update stats
 		registerOrFetchInstanceDoc(host).then(i => {
@@ -75,6 +75,14 @@ export default async (job: Bull.Job<DeliverJobData>) => {
 				isNotResponding: true,
 			});
 
+			// 一定期間配送エラーなら配送を停止する
+			const faildays = 1000 * 60 * 60 * 24 * 7; // 7日前まで許容
+			if (i.lastCommunicatedAt.getTime() && (i.lastCommunicatedAt.getTime() < (Date.now() - faildays))) {
+				Instances.update(i.id, {
+					isSuspended: true,
+				});
+			}
+
 			instanceChart.requestSent(i.host, false);
 			apRequestChart.deliverFail();
 			federationChart.deliverd(i.host, false);
@@ -83,8 +91,18 @@ export default async (job: Bull.Job<DeliverJobData>) => {
 		if (res instanceof StatusError) {
 			// 4xx
 			if (res.isClientError) {
+				// 401,408,429がどうもpermanent errorじゃなさそう
+				if (res.statusCode === 401 || res.statusCode === 408 || res.statusCode === 429) {
+					throw `${res.statusCode} ${res.statusMessage}`;
+				}
+
 				// HTTPステータスコード4xxはクライアントエラーであり、それはつまり
 				// 何回再送しても成功することはないということなのでエラーにはしないでおく
+				return `${res.statusCode} ${res.statusMessage}`;
+			}
+
+			// ただし501は成功することはない
+			if (res.statusCode === 501) {
 				return `${res.statusCode} ${res.statusMessage}`;
 			}
 
