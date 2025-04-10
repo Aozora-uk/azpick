@@ -135,13 +135,10 @@ const headerTabs = $computed(() => [{
 	icon: 'fas fa-unlock',
 	iconOnly: true,
 }] : []), ...(isLocalTimelineAvailable ? [{
-	onClick: top,
-}, ...(isLocalTimelineAvailable ? [{
 	key: 'local',
 	title: i18n.ts._timelines.local,
 	icon: 'fas fa-comments',
 	iconOnly: true,
-	onClick: top,
 }, {
 	key: 'social',
 	title: i18n.ts._timelines.social,
@@ -153,8 +150,6 @@ const headerTabs = $computed(() => [{
 	icon: 'fas fa-file',
 	iconOnly: true,
 }] : [])] : []), ...(isGlobalTimelineAvailable ? [{
-	onClick: top,
-}] : []), ...(isGlobalTimelineAvailable ? [{
 	key: 'global',
 	title: i18n.ts._timelines.global,
 	icon: 'fas fa-globe',
@@ -164,7 +159,6 @@ const headerTabs = $computed(() => [{
 	title: i18n.ts._timelines.personal,
 	icon: 'fas fa-book',
 	iconOnly: true,
-	onClick: top,
 }] : []), {
 	icon: 'fas fa-list-ul',
 	title: i18n.ts.lists,
