@@ -279,6 +279,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	enableSudo: {
 		where: 'device',
 		default: false
+	}
 	useEnterToSend: {
 		where: 'device',
 		default: false,
