@@ -68,6 +68,7 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'deviceAccount',
 		default: [
 			'notifications',
+			'messaging',
 			'favorites',
 			'drive',
 			'followRequests',
@@ -121,7 +122,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	serverDisconnectedBehavior: {
 		where: 'device',
-		default: 'quiet' as 'quiet' | 'reload' | 'dialog',
+		default: 'quiet' as 'quiet' | 'reload' | 'dialog' | 'none',
 	},
 	nsfw: {
 		where: 'device',
@@ -181,7 +182,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	showGapBetweenNotesInTimeline: {
 		where: 'device',
-		default: false,
+		default: true,
 	},
 	darkMode: {
 		where: 'device',
@@ -278,6 +279,13 @@ export const defaultStore = markRaw(new Storage('base', {
 	enableSudo: {
 		where: 'device',
 		default: false
+	useEnterToSend: {
+		where: 'device',
+		default: false,
+	},
+	newNoteRecivedNotificationBehavior: {
+		where: 'device',
+		default: 'count' as 'default' | 'count' | 'none',
 	},
 }));
 
@@ -297,8 +305,8 @@ type Plugin = {
 /**
  * 常にメモリにロードしておく必要がないような設定情報を保管するストレージ(非リアクティブ)
  */
-import lightTheme from '@/themes/l-apricot.json5';
-import darkTheme from '@/themes/d-persimmon.json5';
+import lightTheme from '@/themes/l-cherrypick.json5';
+import darkTheme from '@/themes/d-cherrypick.json5';
 
 export class ColdDeviceStorage {
 	public static default = {

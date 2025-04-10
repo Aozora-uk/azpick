@@ -1,10 +1,10 @@
 {
-	"name": "misskey",
+	"name": "azpick",
 	"version": "12.119.2-fix.7.6",
 	"codename": "indigo",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/atsu1125/misskey-v12.git"
+		"url": "https://github.com/aozora-uk/azpick.git"
 	},
 	"engines": {
     "node": ">= 18.0.0"
@@ -34,6 +34,7 @@
 		"cleanall": "npm run clean-all"
 	},
 	"dependencies": {
+		"@vitalets/google-translate-api": "8.0.0",
 		"execa": "5.1.1",
 		"gulp": "4.0.2",
 		"gulp-cssnano": "2.1.3",

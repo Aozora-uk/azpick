@@ -1,26 +1,50 @@
 <template>
-<div v-if="hasDisconnected && $store.state.serverDisconnectedBehavior === 'quiet'" class="nsbbhtug" @click="resetDisconnected">
-	<div>{{ i18n.ts.disconnectedFromServer }}</div>
-	<div class="command">
-		<button class="_textButton" @click="reload">{{ i18n.ts.reload }}</button>
-		<button class="_textButton">{{ i18n.ts.doNothing }}</button>
+<transition v-if="hasDisconnected && $store.state.serverDisconnectedBehavior === 'quiet'" :name="$store.state.animation && isFriendly ? 'friendly' : ''" appear>
+	<div v-if="showing" class="nsbbhtug" :class="{ friendly: isFriendly }" @click="resetDisconnected">
+		<div class="text">{{ i18n.ts.disconnectedFromServer }}</div>
+		<div class="command">
+			<button class="_textButton" @click="reload">{{ i18n.ts.reload }}</button>
+			<button class="_textButton">{{ i18n.ts.doNothing }}</button>
+		</div>
 	</div>
-</div>
+</transition>
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { stream } from '@/stream';
 import { i18n } from '@/i18n';
 
+const isFriendly = $ref(localStorage.getItem('ui') === 'friendly');
+
+const DESKTOP_THRESHOLD = 1100;
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
+
+let showing = $ref(true);
 let hasDisconnected = $ref(false);
+let currentTimeout = $ref(0);
+
+function timeout() {
+	if (!isDesktop.value) {
+		currentTimeout = window.setTimeout(() => {
+			showing = !isFriendly;
+		}, 10000);
+	}
+}
+
+function clearTimeout() {
+	window.clearTimeout(currentTimeout);
+	showing = true;
+}
 
 function onDisconnected() {
 	hasDisconnected = true;
+	timeout();
 }
 
 function resetDisconnected() {
 	hasDisconnected = false;
+	clearTimeout();
 }
 
 function reload() {
@@ -35,6 +59,14 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.friendly-enter-active, .friendly-leave-active {
+	// transition: opacity 0.3s, transform 0.3s !important;
+}
+.friendly-enter-from, .friendly-leave-to {
+	opacity: 0;
+	transform: translateY(-250px);
+}
+
 .nsbbhtug {
 	position: fixed;
 	z-index: 16385;
@@ -45,9 +77,37 @@ onUnmounted(() => {
 	font-size: 0.9em;
 	color: #fff;
 	background: #000;
-	opacity: 0.8;
+	opacity: 0.7;
 	border-radius: 4px;
 	max-width: 320px;
+
+	&.friendly {
+		@media (max-width: 1099px) {
+			display: flex;
+			width: 100%;
+			max-width: initial;
+			top: 55px;
+			bottom: initial;
+			right: initial;
+			border-radius: initial;
+			transition: opacity 0.5s, transform 0.5s;
+
+			> .text {
+				padding: 0.7em;
+			}
+
+			> .command {
+				position: fixed;
+				right: 0;
+			}
+		}
+	}
+
+	> .text {
+		display: flex;
+		justify-content: center;
+		padding: 0.3em;
+	}
 
 	> .command {
 		display: flex;

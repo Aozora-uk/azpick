@@ -40,7 +40,7 @@ import { getUrlWithoutLoginId } from '@/scripts/login-id';
 import { getAccountFromId } from '@/scripts/get-account-from-id';
 
 (async () => {
-	console.info(`Misskey v${version}`);
+	console.info(`CherryPick v${version}`);
 
 	if (_DEV_) {
 		console.warn('Development mode!!!');
@@ -173,7 +173,8 @@ import { getAccountFromId } from '@/scripts/get-account-from-id';
 		!$i ? defineAsyncComponent(() => import('@/ui/visitor.vue')) :
 		ui === 'deck' ? defineAsyncComponent(() => import('@/ui/deck.vue')) :
 		ui === 'classic' ? defineAsyncComponent(() => import('@/ui/classic.vue')) :
-		defineAsyncComponent(() => import('@/ui/universal.vue')),
+		ui === 'default' ? defineAsyncComponent(() => import('@/ui/universal.vue')) :
+		defineAsyncComponent(() => import('@/ui/friendly.vue')),
 	);
 
 	if (_DEV_) {
@@ -316,6 +317,8 @@ import { getAccountFromId } from '@/scripts/get-account-from-id';
 			if (!canceled) {
 				location.reload();
 			}
+		} else if (defaultStore.state.serverDisconnectedBehavior === 'none') {
+			// none }
 		}
 	});
 

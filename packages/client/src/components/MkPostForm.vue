@@ -1,7 +1,7 @@
 <template>
 <div
 	v-size="{ max: [310, 500] }" class="gafaadew"
-	:class="{ modal, _popup: modal }"
+	:class="{ modal, _popup: modal, friendly: isFriendly, 'friendly-not-desktop': isFriendly && !isDesktop }"
 	@dragover.stop="onDragover"
 	@dragenter="onDragenter"
 	@dragleave="onDragleave"
@@ -41,7 +41,7 @@
 		</div>
 		<MkInfo v-if="hasNotSpecifiedMentions" warn class="hasNotSpecifiedMentions">{{ i18n.ts.notSpecifiedMentionWarning }} - <button class="_textButton" @click="addMissingMention()">{{ i18n.ts.add }}</button></MkInfo>
 		<input v-show="useCw" ref="cwInputEl" v-model="cw" class="cw" :placeholder="i18n.ts.annotation" @keydown="onKeydown">
-		<textarea ref="textareaEl" v-model="text" class="text" :class="{ withCw: useCw }" :disabled="posting" :placeholder="placeholder" data-cy-post-form-text @keydown="onKeydown" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
+		<textarea ref="textareaEl" v-model="text" class="text" :class="{ withCw: useCw, 'friendly-not-desktop': isFriendly && !isDesktop }" :disabled="posting" :placeholder="placeholder" data-cy-post-form-text @keydown="onKeydown" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
 		<input v-show="withHashtags" ref="hashtagsInputEl" v-model="hashtags" class="hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
 		<XPostFormAttaches class="attaches" :files="files" @updated="updateFiles" @detach="detachFile" @changeSensitive="updateFileSensitive" @changeName="updateFileName"/>
 		<XPollEditor v-if="poll" v-model="poll" @destroyed="poll = null"/>
@@ -53,6 +53,7 @@
 			<button v-tooltip="i18n.ts.mention" class="_button" @click="insertMention"><i class="fas fa-at"></i></button>
 			<button v-tooltip="i18n.ts.hashtags" class="_button" :class="{ active: withHashtags }" @click="withHashtags = !withHashtags"><i class="fas fa-hashtag"></i></button>
 			<button v-tooltip="i18n.ts.emoji" class="_button" @click="insertEmoji"><i class="fas fa-laugh-squint"></i></button>
+			<button v-tooltip="$ts.disableRightClick" class="_button" :class="{ active: disableRightClick }" @click="disableRightClick = !disableRightClick"><i class="fas fa-mouse"></i></button>
 			<button v-if="postFormActions.length > 0" v-tooltip="i18n.ts.plugin" class="_button" @click="showActions"><i class="fas fa-plug"></i></button>
 		</footer>
 		<datalist id="hashtags">
@@ -63,7 +64,7 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, watch, nextTick, onMounted, defineAsyncComponent } from 'vue';
+import { inject, watch, nextTick, onMounted, defineAsyncComponent, ref } from 'vue';
 import * as mfm from 'mfm-js';
 import * as misskey from 'misskey-js';
 import insertTextAtCursor from 'insert-text-at-cursor';
@@ -89,6 +90,18 @@ import { i18n } from '@/i18n';
 import { instance } from '@/instance';
 import { $i, getAccounts, openAccountMenu as openAccountMenu_ } from '@/account';
 import { uploadFile } from '@/scripts/upload';
+import { deviceKind } from '@/scripts/device-kind';
+
+const isFriendly = $ref(localStorage.getItem('ui') === 'friendly');
+const DESKTOP_THRESHOLD = 1100;
+const MOBILE_THRESHOLD = 500;
+
+// デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
+const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+window.addEventListener('resize', () => {
+	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
+});
 
 const modal = inject('modal');
 
@@ -147,6 +160,7 @@ let quoteId = $ref(null);
 let hasNotSpecifiedMentions = $ref(false);
 let recentHashtags = $ref(JSON.parse(localStorage.getItem('hashtags') || '[]'));
 let imeText = $ref('');
+let disableRightClick = $ref(false);
 
 const typing = throttle(3000, () => {
 	if (props.channel) {
@@ -301,6 +315,7 @@ function watchForDraft() {
 	watch($$(text), () => saveDraft());
 	watch($$(useCw), () => saveDraft());
 	watch($$(cw), () => saveDraft());
+	watch($$(disableRightClick), () => saveDraft());
 	watch($$(poll), () => saveDraft());
 	watch($$(files), () => saveDraft(), { deep: true });
 	watch($$(visibility), () => saveDraft());
@@ -441,7 +456,12 @@ function clear() {
 }
 
 function onKeydown(ev: KeyboardEvent) {
-	if ((ev.which === 10 || ev.which === 13) && (ev.ctrlKey || ev.metaKey) && canPost) post();
+	if (defaultStore.state.useEnterToSend && !ev.shiftKey) {
+		if ((ev.which === 10 || ev.which === 13) && canPost) post();
+	} else {
+		if ((ev.which === 10 || ev.which === 13) && (ev.ctrlKey || ev.metaKey) && canPost) post();
+	}
+
 	if (ev.which === 27) emit('esc');
 	typing();
 }
@@ -548,6 +568,7 @@ function saveDraft() {
 			text: text,
 			useCw: useCw,
 			cw: cw,
+			disableRightClick: disableRightClick,
 			visibility: visibility,
 			localOnly: localOnly,
 			files: files,
@@ -579,6 +600,7 @@ async function post() {
 		localOnly: localOnly,
 		visibility: visibility,
 		visibleUserIds: visibility === 'specified' ? visibleUsers.map(u => u.id) : undefined,
+		disableRightClick: disableRightClick,
 	};
 
 	if (withHashtags && hashtags && hashtags.trim() !== '') {
@@ -689,6 +711,7 @@ onMounted(() => {
 				text = draft.data.text;
 				useCw = draft.data.useCw;
 				cw = draft.data.cw;
+				disableRightClick = draft.data.disableRightClick;
 				visibility = draft.data.visibility;
 				localOnly = draft.data.localOnly;
 				files = (draft.data.files || []).filter(draftFile => draftFile);
@@ -726,10 +749,17 @@ onMounted(() => {
 				});
 			}
 			quoteId = init.renote ? init.renote.id : null;
+			disableRightClick = init.disableRightClick != null;
 		}
 
 		nextTick(() => watchForDraft());
 	});
+
+	if (!isDesktop.value) {
+		window.addEventListener('resize', () => {
+			if (window.innerWidth >= DESKTOP_THRESHOLD) isDesktop.value = true;
+		}, { passive: true });
+	}
 });
 </script>
 
@@ -740,6 +770,17 @@ onMounted(() => {
 	&.modal {
 		width: 100%;
 		max-width: 520px;
+	}
+
+	&.friendly {
+		max-width: 800px;
+	}
+
+	&.friendly-not-desktop {
+		margin: initial !important;
+		padding: initial !important;
+		border-radius: initial !important;
+		max-width: 100% !important;
 	}
 
 	> header {
@@ -930,6 +971,10 @@ onMounted(() => {
 			&.withCw {
 				padding-top: 8px;
 			}
+
+			&.friendly-not-desktop {
+				min-height: 200px !important;
+			}
 		}
 
 		> footer {
@@ -988,6 +1033,10 @@ onMounted(() => {
 
 			> .text {
 				min-height: 80px;
+			}
+
+			&.friendly-not-desktop {
+				min-height: 200px !important;
 			}
 
 			> footer {

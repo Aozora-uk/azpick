@@ -28,12 +28,17 @@
 		<FormSwitch v-model="enableInfiniteScroll" class="_formBlock">{{ i18n.ts.enableInfiniteScroll }}</FormSwitch>
 		<FormSwitch v-model="useReactionPickerForContextMenu" class="_formBlock">{{ i18n.ts.useReactionPickerForContextMenu }}</FormSwitch>
 		<FormSwitch v-model="disablePagesScript" class="_formBlock">{{ i18n.ts.disablePagesScript }}</FormSwitch>
+		<FormSwitch v-model="useEnterToSend" class="_formBlock">
+			<template #label>{{ i18n.ts.useEnterToSend }}</template>
+			<template #caption>{{ i18n.ts.useEnterToSendDescription }}</template>
+		</FormSwitch>
 
 		<FormSelect v-model="serverDisconnectedBehavior" class="_formBlock">
 			<template #label>{{ i18n.ts.whenServerDisconnected }}</template>
 			<option value="reload">{{ i18n.ts._serverDisconnectedBehavior.reload }}</option>
 			<option value="dialog">{{ i18n.ts._serverDisconnectedBehavior.dialog }}</option>
 			<option value="quiet">{{ i18n.ts._serverDisconnectedBehavior.quiet }}</option>
+			<option value="none">{{ i18n.ts._serverDisconnectedBehavior.none }}</option>
 		</FormSelect>
 	</FormSection>
 
@@ -55,12 +60,21 @@
 		</FormSwitch>
 		<FormSwitch v-model="disableDrawer" class="_formBlock">{{ i18n.ts.disableDrawer }}</FormSwitch>
 
+		<FormSelect v-model="newNoteRecivedNotificationBehavior" class="_formBlock">
+			<template #label>{{ $ts.newNoteRecivedNotification }}</template>
+			<option value="default">{{ $ts._newNoteRecivedNotificationBehavior.default }}</option>
+			<option value="count">{{ $ts._newNoteRecivedNotificationBehavior.count }}</option>
+			<option value="none">{{ $ts._newNoteRecivedNotificationBehavior.none }}</option>
+		</FormSelect>
+
 		<FormRadios v-model="fontSize" class="_formBlock">
 			<template #label>{{ i18n.ts.fontSize }}</template>
+			<option value="1"><span style="font-size: 12px;">Aa</span></option>
+			<option value="2"><span style="font-size: 13px;">Aa</span></option>
 			<option :value="null"><span style="font-size: 14px;">Aa</span></option>
-			<option value="1"><span style="font-size: 15px;">Aa</span></option>
-			<option value="2"><span style="font-size: 16px;">Aa</span></option>
-			<option value="3"><span style="font-size: 17px;">Aa</span></option>
+			<option value="3"><span style="font-size: 15px;">Aa</span></option>
+			<option value="4"><span style="font-size: 16px;">Aa</span></option>
+			<option value="5"><span style="font-size: 17px;">Aa</span></option>
 		</FormRadios>
 	</FormSection>
 
@@ -147,6 +161,8 @@ const useReactionPickerForContextMenu = computed(defaultStore.makeGetterSetter('
 const squareAvatars = computed(defaultStore.makeGetterSetter('squareAvatars'));
 const aiChanMode = computed(defaultStore.makeGetterSetter('aiChanMode'));
 const enableMfm = computed(defaultStore.makeGetterSetter('enableMfm'));
+const useEnterToSend = computed(defaultStore.makeGetterSetter('useEnterToSend'));
+const newNoteRecivedNotificationBehavior = computed(defaultStore.makeGetterSetter('newNoteRecivedNotificationBehavior'));
 
 watch(lang, () => {
 	localStorage.setItem('lang', lang.value as string);

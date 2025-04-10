@@ -115,8 +115,15 @@ export const navbarItemDef = reactive({
 		icon: 'fas fa-columns',
 		action: (ev) => {
 			os.popupMenu([{
+				text: 'Friendly',
+				active: ui === 'friendly' || ui === null,
+				action: () => {
+					localStorage.setItem('ui', 'friendly');
+					unisonReload();
+				},
+			}, {
 				text: i18n.ts.default,
-				active: ui === 'default' || ui === null,
+				active: ui === 'default',
 				action: () => {
 					localStorage.setItem('ui', 'default');
 					unisonReload();

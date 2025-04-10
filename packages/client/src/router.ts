@@ -213,6 +213,7 @@ export const routes = [{
 	component: page(() => import('./pages/explore.vue')),
 }, {
 	path: '/explore',
+	name: 'explore',
 	component: page(() => import('./pages/explore.vue')),
 }, {
 	path: '/search',
@@ -405,6 +406,7 @@ export const routes = [{
 	}],
 }, {
 	path: '/my/notifications',
+	name: 'my-notifications',
 	component: page(() => import('./pages/notifications.vue')),
 	loginRequired: true,
 }, {
@@ -417,10 +419,12 @@ export const routes = [{
 	component: page(() => import('./pages/messaging/index.vue')),
 	loginRequired: true,
 }, {
+	name: 'messaging-room',
 	path: '/my/messaging/:userAcct',
 	component: page(() => import('./pages/messaging/messaging-room.vue')),
 	loginRequired: true,
 }, {
+	name: 'messaging-room-group',
 	path: '/my/messaging/group/:groupId',
 	component: page(() => import('./pages/messaging/messaging-room.vue')),
 	loginRequired: true,

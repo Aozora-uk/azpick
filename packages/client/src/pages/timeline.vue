@@ -1,6 +1,10 @@
 <template>
 <MkStickyContainer>
-	<template #header><MkPageHeader v-model:tab="src" :actions="headerActions" :tabs="headerTabs" :display-my-avatar="true"/></template>
+	<template #header>
+		<CPPageHeader v-if="isFriendly && !isDesktop" v-model:tab="src" :actions="headerActions" :tabs="headerTabs"/>
+		<MkPageHeader v-else v-model:tab="src" :actions="headerActions" :tabs="headerTabs" :display-my-avatar="true"/>
+	</template>
+
 	<MkSpacer :content-max="800">
 		<div ref="rootEl" v-hotkey.global="keymap" class="cmuxhskf">
 			<XTutorial v-if="$store.reactiveState.tutorial.value != -1" class="tutorial _block"/>
@@ -31,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, computed, watch } from 'vue';
+import { defineAsyncComponent, computed, watch, ref } from 'vue';
 import XTimeline from '@/components/MkTimeline.vue';
 import XPostForm from '@/components/MkPostForm.vue';
 import { scroll } from '@/scripts/scroll';
@@ -41,6 +45,12 @@ import { i18n } from '@/i18n';
 import { instance } from '@/instance';
 import { $i } from '@/account';
 import { definePageMetadata } from '@/scripts/page-metadata';
+
+const isFriendly = $ref(localStorage.getItem('ui') === 'friendly');
+const DESKTOP_THRESHOLD = 1100;
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
+
+let includeTypes = $ref<string[] | null>(null);
 
 const XTutorial = defineAsyncComponent(() => import('./timeline.tutorial.vue'));
 
@@ -125,10 +135,13 @@ const headerTabs = $computed(() => [{
 	icon: 'fas fa-unlock',
 	iconOnly: true,
 }] : []), ...(isLocalTimelineAvailable ? [{
+	onClick: top,
+}, ...(isLocalTimelineAvailable ? [{
 	key: 'local',
 	title: i18n.ts._timelines.local,
 	icon: 'fas fa-comments',
 	iconOnly: true,
+	onClick: top,
 }, {
 	key: 'social',
 	title: i18n.ts._timelines.social,
@@ -140,6 +153,8 @@ const headerTabs = $computed(() => [{
 	icon: 'fas fa-file',
 	iconOnly: true,
 }] : [])] : []), ...(isGlobalTimelineAvailable ? [{
+	onClick: top,
+}] : []), ...(isGlobalTimelineAvailable ? [{
 	key: 'global',
 	title: i18n.ts._timelines.global,
 	icon: 'fas fa-globe',
@@ -149,6 +164,7 @@ const headerTabs = $computed(() => [{
 	title: i18n.ts._timelines.personal,
 	icon: 'fas fa-book',
 	iconOnly: true,
+	onClick: top,
 }] : []), {
 	icon: 'fas fa-list-ul',
 	title: i18n.ts.lists,
@@ -185,6 +201,10 @@ definePageMetadata(computed(() => ({
 			margin: var(--margin) auto 0 auto;
 			padding: 8px 16px;
 			border-radius: 32px;
+
+			> i {
+				margin-right: 5px;
+			}
 		}
 	}
 

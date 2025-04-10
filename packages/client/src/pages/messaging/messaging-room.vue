@@ -5,7 +5,7 @@
 	@dragover.prevent.stop="onDragover"
 	@drop.prevent.stop="onDrop"
 >
-	<div class="_content mk-messaging-room">
+	<div class="_content mk-messaging-room" :class="{ friendly: isFriendly }">
 		<div class="body">
 			<MkPagination v-if="pagination" ref="pagingComponent" :key="userAcct || groupId" :pagination="pagination">
 				<template #empty>
@@ -29,7 +29,7 @@
 				</template>
 			</MkPagination>
 		</div>
-		<footer>
+		<footer :class="{ friendly: isFriendly, 'friendly-not-mobile': !isMobile }">
 			<div v-if="typers.length > 0" class="typers">
 				<I18n :src="i18n.ts.typingUsers" text-tag="span" class="users">
 					<template #users>
@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, onMounted, nextTick, onBeforeUnmount } from 'vue';
+import { computed, watch, onMounted, nextTick, onBeforeUnmount, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import * as Acct from 'misskey-js/built/acct';
 import XMessage from './messaging-room.message.vue';
@@ -65,6 +65,15 @@ import { i18n } from '@/i18n';
 import { $i } from '@/account';
 import { defaultStore } from '@/store';
 import { definePageMetadata } from '@/scripts/page-metadata';
+import { deviceKind } from '@/scripts/device-kind';
+
+const isFriendly = $ref(localStorage.getItem('ui') === 'friendly');
+
+const MOBILE_THRESHOLD = 500;
+const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+window.addEventListener('resize', () => {
+	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
+});
 
 const props = defineProps<{
 	userAcct?: string;
@@ -304,6 +313,10 @@ definePageMetadata(computed(() => !fetching ? user ? {
 	position: relative;
 	overflow: auto;
 
+	&.friendly {
+		overflow: initial;
+	}
+
 	> .body {
 		.more {
 			display: block;
@@ -344,9 +357,18 @@ definePageMetadata(computed(() => !fetching ? user ? {
 		width: 100%;
 		position: sticky;
 		z-index: 2;
-		bottom: 0;
 		padding-top: 8px;
 		bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+
+		&.friendly {
+			margin-top: 64px;
+			bottom: calc(env(safe-area-inset-bottom, 0px) + 45px);
+		}
+
+		&.friendly-not-mobile {
+			margin-top: 8px;
+			bottom: 0;
+		}
 
 		> .new-message {
 			width: 100%;
@@ -391,6 +413,7 @@ definePageMetadata(computed(() => !fetching ? user ? {
 			max-height: 12em;
 			overflow-y: scroll;
 			border-top: solid 0.5px var(--divider);
+			border-radius: initial;
 		}
 	}
 }

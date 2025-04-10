@@ -152,11 +152,11 @@ function onMousedown(evt: MouseEvent): void {
 		background: linear-gradient(90deg, var(--buttonGradateA), var(--buttonGradateB));
 
 		&:not(:disabled):hover {
-			background: linear-gradient(90deg, var(--X8), var(--X8));
+			background: linear-gradient(90deg, var(--cherryX8), var(--pickX8));
 		}
 
 		&:not(:disabled):active {
-			background: linear-gradient(90deg, var(--X8), var(--X8));
+			background: linear-gradient(90deg, var(--cherryX8), var(--pickX8));
 		}
 	}
 
