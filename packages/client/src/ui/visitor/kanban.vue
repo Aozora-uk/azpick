@@ -32,11 +32,7 @@
 				</div>
 				<div v-if="poweredBy" class="powered-by">
 					<b><MkA to="/">{{ host }}</MkA></b>
-<<<<<<< HEAD
 					<small>Powered by <a href="https://github.com/aozora-uk/azpick" target="_blank">AZPick Next</a></small>
-=======
-					<small>Powered by <a href="https://github.com/morotesovtannu/aozorapick" target="_blank"><span style="color: var(--cherry);">Cherry</span><span style="color: var(--pick);">Pick</span></a></small>
->>>>>>> f234395f34 (URL&icon等)
 				</div>
 			</template>
 		</div>
