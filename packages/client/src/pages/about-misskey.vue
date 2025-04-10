@@ -7,7 +7,7 @@
 				<div id="debug"></div>
 				<div ref="containerEl" v-panel class="_formBlock about" :class="{ playing: easterEggEngine != null }">
 					<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-					<div class="misskey">CherryPick</div>
+					<div class="misskey">AZPick(based on CherryPick/Misskey)</div>
 					<div class="version">v{{ version }}</div>
 					<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }"><MkEmoji class="emoji" :emoji="emoji.emoji" :custom-emojis="$instance.emojis" :is-reaction="false" :normal="true" :no-style="true"/></span>
 				</div>
@@ -17,15 +17,25 @@
 				<div class="_formBlock" style="text-align: center;">
 					<MkButton primary rounded inline @click="iLoveCherryPick">I <Mfm text="$[jelly ❤]"/> #CherryPick</MkButton>
 				</div>
-				<FormSection v-if="isKokonect">
-					<template #label>_KOKONECT_</template>
-					<div class="_formLinks">
-						<FormLink to="https://status.kokonect.link" external>
-							<template #icon><i class="fas fa-tachometer-alt"></i></template>
-							{{ i18n.ts._aboutMisskey._kokonect.serverStatus }}
-							<template #suffix>GitHub</template>
-						</FormLink>
-					</div>
+				<FormSection>
+					<template #label>Aozora.UK</template>
+						<div class="_formLinks">
+							<FormLink to="https://aozora.uk" external>
+								<template #icon><i class="fas fa-globe"></i></template>
+								aozora.uk
+								<template #suffix>aozora.uk</template>
+							</FormLink>
+							<FormLink to="https://chai.aozora.uk" external>
+								<template #icon><i class="fas fa-tachometer-alt"></i></template>
+								Aozoratea
+								<template #suffix>github.io</template>
+							</FormLink>
+							<FormLink to="https://github.com/morotesovtannu/aozorapick" external>
+								<template #icon><i class="fas fa-code"></i></template>
+								{{ i18n.ts._aboutMisskey.source }}
+								<template #suffix>GitHub</template>
+							</FormLink>
+						</div>
 				</FormSection>
 				<FormSection>
 					<template #label>CherryPick</template>
@@ -65,7 +75,7 @@
 					</div>
 				</FormSection>
 				<FormSection>
-					<template #label>Misskey</template>
+					<template #label>Misskey (v12-LTS)</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/atsu1125/misskey-v12" external>
 							<template #icon><i class="fas fa-code"></i></template>
@@ -90,6 +100,7 @@
 					<div class="_formLinks">
 						<FormLink to="https://github.com/noridev" external>@noridev (CherryPick)</FormLink>
 						<FormLink to="https://github.com/syuilo" external>@syuilo (Misskey)</FormLink>
+						<FormLink to="https://github.com/atsu1125" external>@atsu1125 (v12-LTS)</FormLink>
 					</div>
 					<template #caption><MkLink url="https://github.com/misskey-dev/misskey/graphs/contributors">{{ i18n.ts._aboutMisskey.allContributors }}</MkLink></template>
 				</FormSection>
@@ -118,84 +129,9 @@ import * as os from '@/os';
 import { definePageMetadata } from '@/scripts/page-metadata';
 
 const patrons = [
-	'まっちゃとーにゅ',
-	'mametsuko',
-	'noellabo',
-	'AureoleArk',
-	'Gargron',
-	'Nokotaro Takeda',
-	'Suji Yan',
-	'oi_yekssim',
-	'regtan',
-	'Hekovic',
-	'nenohi',
-	'Gitmo Life Services',
-	'naga_rus',
-	'Efertone',
-	'Melilot',
-	'motcha',
-	'nanami kan',
-	'sevvie Rose',
-	'Hayato Ishikawa',
-	'Puniko',
-	'skehmatics',
-	'Quinton Macejkovic',
-	'YUKIMOCHI',
-	'dansup',
-	'mewl hayabusa',
-	'Emilis',
-	'Fristi',
-	'makokunsan',
-	'chidori ninokura',
-	'Peter G.',
-	'見当かなみ',
-	'natalie',
-	'Maronu',
-	'Steffen K9',
-	'takimura',
-	'sikyosyounin',
-	'Nesakko',
-	'YuzuRyo61',
-	'blackskye',
-	'sheeta.s',
-	'osapon',
-	'public_yusuke',
-	'CG',
-	'吴浥',
-	't_w',
-	'Jerry',
-	'nafuchoco',
-	'Takumi Sugita',
-	'GLaTAN',
-	'mkatze',
-	'kabo2468y',
-	'mydarkstar',
-	'Roujo',
-	'DignifiedSilence',
-	'uroco @99',
-	'totokoro',
-	'うし',
-	'kiritan',
-	'weepjp',
-	'Liaizon Wakest',
-	'Duponin',
-	'Blue',
-	'Naoki Hirayama',
-	'wara',
-	'Wataru Manji (manji0)',
-	'みなしま',
-	'kanoy',
-	'xianon',
-	'Denshi',
-	'Osushimaru',
-	'にょんへら',
-	'おのだい',
-	'Leni',
-	'oss',
-	'Weeble',
-	'蝉暮せせせ',
-	'ThatOneCalculator',
-	'pixeldesu',
+	'morotesovtannu',
+	'Etone Sabasappugawa',
+	'桜木まりか',
 ];
 
 let isKokonect = false;
