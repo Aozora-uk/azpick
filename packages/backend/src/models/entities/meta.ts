@@ -370,14 +370,14 @@ export class Meta {
 
 	@Column('varchar', {
 		length: 512,
-		default: 'https://github.com/kokonect-link/cherrypick',
+		default: 'https://github.com/aozora-uk/azpick',
 		nullable: false,
 	})
 	public repositoryUrl: string;
 
 	@Column('varchar', {
 		length: 512,
-		default: 'https://github.com/kokonect-link/cherrypick/issues/new',
+		default: 'https://github.com/aozora-uk/azpick/issues/new',
 		nullable: true,
 	})
 	public feedbackUrl: string | null;

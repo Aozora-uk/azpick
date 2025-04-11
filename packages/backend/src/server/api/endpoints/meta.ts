@@ -57,12 +57,12 @@ export const meta = {
 			repositoryUrl: {
 				type: 'string',
 				optional: false, nullable: false,
-				default: 'https://github.com/kokonect-link/cherrypick',
+				default: 'https://github.com/aozora-uk/azpick',
 			},
 			feedbackUrl: {
 				type: 'string',
 				optional: false, nullable: false,
-				default: 'https://github.com/kokonect-link/cherrypick/issues/new',
+				default: 'https://github.com/aozora-uk/azpick/issues/new',
 			},
 			defaultDarkTheme: {
 				type: 'string',

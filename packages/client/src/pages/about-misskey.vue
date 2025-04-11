@@ -38,7 +38,7 @@
 						</div>
 				</FormSection>
 				<FormSection>
-					<template #label>AZPick</template>
+					<template #label>Cherrypick</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/kokonect-link/cherrypick" external>
 							<template #icon><i class="fas fa-code"></i></template>
