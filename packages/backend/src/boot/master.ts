@@ -26,7 +26,7 @@ const themeColor = chalk.hex('#ffa9c3');
 
 function greet() {
 	if (!envOption.quiet) {
-		//#region CherryPick logo
+		//#region AZPick logo
 		const v = `v${meta.version}`;
 		console.log(chalk.hex('#ffa9c3').bold('  _________ .__                                ') + chalk.hex('#95e3e8').bold('__________.__        __    '));
 		console.log(chalk.hex('#ffa9c3').bold(' \\_   ___ \\|  |__   __________________ ___.__.') + chalk.hex('#95e3e8').bold('\\______   \\__| ____ |  | __'));
@@ -44,8 +44,8 @@ function greet() {
 		console.log(chalkTemplate`--- ${os.hostname()} {gray (PID: ${process.pid.toString()})} ---`);
 	}
 
-	bootLogger.info('Welcome to CherryPick!');
-	bootLogger.info(`CherryPick v${meta.version}`, null, true);
+	bootLogger.info('Welcome to AZPick!');
+	bootLogger.info(`AZPick v${meta.version}`, null, true);
 }
 
 /**

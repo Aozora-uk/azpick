@@ -1,6 +1,6 @@
 ---
 _lang_: "Türkçe"
-introMisskey: "Açık kaynaklı bir dağıtılmış mikroblog hizmeti olan CherryPick'e hoş geldiniz.\nCherryPick, neler olup bittiğini paylaşmak ve herkese sizden bahsetmek için \"notlar\" oluşturmanıza olanak tanıyan, açık kaynaklı, dağıtılmış bir mikroblog hizmetidir.\nHerkesin notlarına kendi tepkilerinizi hızlıca eklemek için \"Tepkiler\" özelliğini de kullanabilirsiniz👍.\nYeni bir dünyayı keşfedin🚀."
+introMisskey: "Açık kaynaklı bir dağıtılmış mikroblog hizmeti olan AZPick'e hoş geldiniz.\nAZPick, neler olup bittiğini paylaşmak ve herkese sizden bahsetmek için \"notlar\" oluşturmanıza olanak tanıyan, açık kaynaklı, dağıtılmış bir mikroblog hizmetidir.\nHerkesin notlarına kendi tepkilerinizi hızlıca eklemek için \"Tepkiler\" özelliğini de kullanabilirsiniz👍.\nYeni bir dünyayı keşfedin🚀."
 monthAndDay: "{month}Ay {day}Gün"
 search: "Arama"
 notifications: "Bildirim"

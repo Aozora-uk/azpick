@@ -8,7 +8,7 @@
 			<span>Switch is now {{ flag ? 'on' : 'off' }}</span>
 		</MkSwitch>
 		<div style="margin: 32px 0;">
-			<MkRadio v-model="radio" value="cherrypick">CherryPick</MkRadio>
+			<MkRadio v-model="radio" value="cherrypick">AZPick</MkRadio>
 			<MkRadio v-model="radio" value="misskey">Misskey</MkRadio>
 			<MkRadio v-model="radio" value="mastodon">Mastodon</MkRadio>
 			<MkRadio v-model="radio" value="pleroma">Pleroma</MkRadio>
@@ -79,7 +79,7 @@ export default defineComponent({
 				},
 				baz: {
 					type: 'string',
-					default: 'CherryPick makes you happy.',
+					default: 'AZPick makes you happy.',
 					label: 'This is a string property'
 				},
 			});

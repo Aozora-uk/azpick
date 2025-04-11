@@ -60,7 +60,7 @@
 				<div class="title">Enviroment</div>
 				<div class="body">
 					<div class="number _panel">
-						<div class="label">CherryPick</div>
+						<div class="label">AZPick</div>
 						<div class="value _monospace">{{ version }}</div>
 					</div>
 					<div v-if="serverInfo" class="number _panel">

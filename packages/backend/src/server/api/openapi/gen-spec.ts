@@ -9,7 +9,7 @@ export function genOpenapiSpec() {
 
 		info: {
 			version: 'v1',
-			title: 'CherryPick API',
+			title: 'AZPick API',
 			'x-logo': { url: '/static-assets/api-doc.png' },
 		},
 

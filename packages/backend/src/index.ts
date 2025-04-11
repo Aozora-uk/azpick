@@ -1,5 +1,5 @@
 /**
- * CherryPick Entry Point!
+ * AZPick Entry Point!
  */
 
 import { EventEmitter } from 'node:events';

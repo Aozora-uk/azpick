@@ -7,8 +7,8 @@
 				<div id="debug"></div>
 				<div ref="containerEl" v-panel class="_formBlock about" :class="{ playing: easterEggEngine != null }">
 					<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-					<div class="misskey">AZPick(based on CherryPick/Misskey)</div>
-					<div class="version">v{{ version }}</div>
+					<div class="misskey">AZPick(based on Cherrypick/Misskey)</div>
+					<div class="version">{{ version }}</div>
 					<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }"><MkEmoji class="emoji" :emoji="emoji.emoji" :custom-emojis="$instance.emojis" :is-reaction="false" :normal="true" :no-style="true"/></span>
 				</div>
 				<div class="_formBlock" style="text-align: center;">
@@ -38,7 +38,7 @@
 						</div>
 				</FormSection>
 				<FormSection>
-					<template #label>CherryPick</template>
+					<template #label>AZPick</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/kokonect-link/cherrypick" external>
 							<template #icon><i class="fas fa-code"></i></template>
@@ -98,7 +98,7 @@
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.contributors }}</template>
 					<div class="_formLinks">
-						<FormLink to="https://github.com/noridev" external>@noridev (CherryPick)</FormLink>
+						<FormLink to="https://github.com/noridev" external>@noridev (AZPick)</FormLink>
 						<FormLink to="https://github.com/syuilo" external>@syuilo (Misskey)</FormLink>
 						<FormLink to="https://github.com/atsu1125" external>@atsu1125 (v12-LTS)</FormLink>
 					</div>
@@ -167,9 +167,9 @@ function gravity() {
 	easterEggEngine = physics(containerEl);
 }
 
-function iLoveCherryPick() {
+function iLoveAZPick() {
 	os.post({
-		initialText: 'I $[jelly ❤] #CherryPick',
+		initialText: 'I $[jelly ❤] #AZPick',
 		instant: true,
 	});
 }

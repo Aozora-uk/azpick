@@ -195,7 +195,7 @@ function addSecurityKey() {
 					challenge: byteify(reg!.challenge, 'base64'),
 					rp: {
 						id: hostname,
-						name: 'CherryPick'
+						name: 'AZPick'
 					},
 					user: {
 						id: byteify($i!.id, 'ascii'),

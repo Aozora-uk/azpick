@@ -146,7 +146,7 @@ router.get('/tw/cb', async ctx => {
 			.getOne();
 
 		if (link == null) {
-			ctx.throw(404, `@${result.screenName}と連携しているCherryPickアカウントはありませんでした...`);
+			ctx.throw(404, `@${result.screenName}と連携しているAZPickアカウントはありませんでした...`);
 			return;
 		}
 
@@ -188,7 +188,7 @@ router.get('/tw/cb', async ctx => {
 			},
 		});
 
-		ctx.body = `Twitter: @${result.screenName} を、CherryPick: @${user.username} に接続しました！`;
+		ctx.body = `Twitter: @${result.screenName} を、AZPick: @${user.username} に接続しました！`;
 
 		// Publish i updated event
 		publishMainStream(user.id, 'meUpdated', await Users.pack(user, user, {

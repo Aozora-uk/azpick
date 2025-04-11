@@ -40,7 +40,7 @@ import { getUrlWithoutLoginId } from '@/scripts/login-id';
 import { getAccountFromId } from '@/scripts/get-account-from-id';
 
 (async () => {
-	console.info(`CherryPick v${version}`);
+	console.info(`AZPick v${version}`);
 
 	if (_DEV_) {
 		console.warn('Development mode!!!');
