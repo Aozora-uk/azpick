@@ -30,7 +30,7 @@
 								Aozoratea
 								<template #suffix>github.io</template>
 							</FormLink>
-							<FormLink to="https://github.com/morotesovtannu/aozorapick" external>
+							<FormLink to="https://github.com/aozora-uk/azpick" external>
 								<template #icon><i class="fas fa-code"></i></template>
 								{{ i18n.ts._aboutMisskey.source }}
 								<template #suffix>GitHub</template>
@@ -38,7 +38,7 @@
 						</div>
 				</FormSection>
 				<FormSection>
-					<template #label>Cherrypick</template>
+					<template #label>CherryPick</template>
 					<div class="_formLinks">
 						<FormLink to="https://github.com/kokonect-link/cherrypick" external>
 							<template #icon><i class="fas fa-code"></i></template>
@@ -67,10 +67,10 @@
 							{{ i18n.ts._aboutMisskey._cherrypick.donate }}
 							<template #suffix>PayPal</template>
 						</FormLink>
-						<FormLink to="https://toss.me/noridev" external>
+						<FormLink to="https://noridev.fanbox.cc/plans" external>
 							<template #icon><i class="fas fa-hand-holding-medical"></i></template>
 							{{ i18n.ts._aboutMisskey._cherrypick.donate }}
-							<template #suffix>Toss</template>
+							<template #suffix>Fanbox</template>
 						</FormLink>
 					</div>
 				</FormSection>
@@ -98,7 +98,7 @@
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.contributors }}</template>
 					<div class="_formLinks">
-						<FormLink to="https://github.com/noridev" external>@noridev (AZPick)</FormLink>
+						<FormLink to="https://github.com/noridev" external>@noridev (Cherrypick)</FormLink>
 						<FormLink to="https://github.com/syuilo" external>@syuilo (Misskey)</FormLink>
 						<FormLink to="https://github.com/atsu1125" external>@atsu1125 (v12-LTS)</FormLink>
 					</div>
@@ -167,9 +167,9 @@ function gravity() {
 	easterEggEngine = physics(containerEl);
 }
 
-function iLoveAZPick() {
+function iLoveCherryPick() {
 	os.post({
-		initialText: 'I $[jelly ❤] #AZPick',
+		initialText: 'I $[jelly ❤] #CherryPick',
 		instant: true,
 	});
 }
