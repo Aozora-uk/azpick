@@ -11,6 +11,7 @@
 		bg: 'rgb(31, 33, 31)',
 		fg: '#cdd8c7',
 		fgHighlighted: '#fff',
+		fgOnWhite: '@accent',
 		divider: 'rgba(255, 255, 255, 0.14)',
 		panel: 'rgb(41, 43, 41)',
 		infoFg: '@fg',
@@ -21,5 +22,8 @@
 		mentionMe: '#de6161',
 		hashtag: '#68bad0',
 		link: '#a1c758',
+		error: '#ce5441',
+		warn: '#d0b868',
+		success: '#a1c758',
 	},
 }

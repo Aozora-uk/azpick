@@ -10,11 +10,11 @@
 	props: {
 		bg: '#f9f9f9',
 		fg: '#676767',
+		fgOnWhite: '@accent',
 		divider: '#e8e8e8',
 		header: ':alpha<0.7<@panel',
 		navBg: '#fff',
 		panel: '#fff',
-		panelHeaderDivider: '@divider',
 		mentionMe: 'rgb(0, 179, 70)',
 	},
 }
